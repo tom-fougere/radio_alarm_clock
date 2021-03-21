@@ -41,10 +41,10 @@ class OSDate:
         return self.currentDatetime.timetuple().tm_yday
 
     def display_date(self):
-        print "%04d/%02d/%02d" % (self.currentDatetime.year, self.currentDatetime.month, self.currentDatetime.day)
+        print("%04d/%02d/%02d" % (self.currentDatetime.year, self.currentDatetime.month, self.currentDatetime.day))
 
     def display_time(self):
-        print "%02d:%02d" % (self.currentDatetime.hour, self.currentDatetime.minute)
+        print("%02d:%02d" % (self.currentDatetime.hour, self.currentDatetime.minute))
 
     def get_datetime(self):
         current_datetime = "%04d/%02d/%02d %02d:%02d:%02d" % (self.currentDatetime.year,
@@ -61,7 +61,7 @@ class NTPDate:
     host = "0.fr.pool.ntp.org"
 
     # reference time (in seconds since 1900-01-01 00:00:00)
-    TIME1970 = 2208988800L  # 1970-01-01 00:00:00
+    TIME1970 = 2208988800  # 1970-01-01 00:00:00
 
     # others parameters
     port = 123
@@ -120,7 +120,7 @@ class NTPDate:
         return self.currentDatetime.timetuple().tm_yday
 
     def display_date(self):
-        print "%04d/%02d/%02d" % (self.currentDatetime.year, self.currentDatetime.month, self.currentDatetime.day)
+        print("%04d/%02d/%02d" % (self.currentDatetime.year, self.currentDatetime.month, self.currentDatetime.day))
 
     def display_time(self):
-        print "%02d:%02d" % (self.currentDatetime.hour, self.currentDatetime.minute)
+        print("%02d:%02d" % (self.currentDatetime.hour, self.currentDatetime.minute))

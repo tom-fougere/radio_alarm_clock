@@ -45,12 +45,12 @@ class Alarm:
         if self.on_off == 1:
             # Check the current day is included in the days of alarm activation
             if current_daytime.get_weekday() in self.days:
-                print "Alarm::Current Time %02d:%02d" % (current_daytime.get_hour(), current_daytime.get_minute())
-                print "Alarm::Alarm Time %02d:%02d" % (ring_time.hour, ring_time.minute)
+                print("Alarm::Current Time %02d:%02d" % (current_daytime.get_hour(), current_daytime.get_minute()))
+                print("Alarm::Alarm Time %02d:%02d" % (ring_time.hour, ring_time.minute))
 
                 # Compare the current time and the alarm time (in case where sound is not playing)
                 if ring_time == current_time and self.sound.isplay() == 0:
-                    print "Alarm::Ring"
+                    print("Alarm::Ring")
                     # Active alarm
                     self.active = 1
                     # Time of deactivation in case of long activation (1h)
@@ -61,18 +61,18 @@ class Alarm:
         if self.active == 1:
             # If current time is higher than the time of deactivation, force deactivation
             if current_time > Alarm.time_of_deactivation:
-                print "Alarm::Force deactivation of the alarm"
+                print("Alarm::Force deactivation of the alarm")
                 self.deactivate()
 
     def snooze(self):
-        print "Alarm::Snooze"
+        print("Alarm::Snooze")
         # Stop sound
         self.sound.stop()
         # Add delay
         Alarm.applied_delay += self.delay_repetition
 
     def deactivate(self):
-        print "Alarm::Deactivation"
+        print("Alarm::Deactivation")
         # Reset delay
         Alarm.applied_delay = 0
 

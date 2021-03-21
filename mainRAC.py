@@ -3,7 +3,7 @@ from alarms import Alarm
 from soundLibrary import Sound
 from InternetCheck import InternetChecker
 
-print "Hello world"
+print("Hello world")
 
 currentDateOS = OSDate()
 currentDateNTP = NTPDate()
@@ -12,7 +12,7 @@ currentSound = Sound()
 
 # Initialisation
 list_alarms = []
-for count in xrange(3):
+for count in range(3):
     alarm = Alarm()
     alarm.set_alarm(currentDateOS.get_hour(), currentDateOS.get_minute()+count, currentSound)
     alarm.set_on()
@@ -21,15 +21,15 @@ for count in xrange(3):
 
 IChecker = InternetChecker()
 while True:
-    if alarm_active >= 0
+    if alarm_active >= 0:
         if IChecker.check_connection():
-            for count in xrange(3):
+            for count in range(3):
                 currentDateOS.update()
                 list_alarms[count].check_activation(currentDateOS)
-                print "Alarm %d active : %d" %(count, list_alarms[count].active)
+                print("Alarm %d active : %d" %(count, list_alarms[count].active))
                 alarm_active += list_alarms[count].active
         else:
-            for count in xrange(3):
+            for count in range(3):
                 currentDateNTP.update()
                 list_alarms[count].check_activation(currentDateNTP)
 

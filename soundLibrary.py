@@ -10,11 +10,11 @@ class Sound:
 
     def play(self):
         self.is_playing = 1
-        print "Sound::Play Sound"
+        print("Sound::Play Sound")
 
     def stop(self):
         self.is_playing = 0
-        print "Sound::Stop Sound"
+        print("Sound::Stop Sound")
 
     def isplay(self):
         return self.is_playing
@@ -29,8 +29,8 @@ class Sound:
         self.volume = volume
 
     def displayRadioURLs(self):
-        print "Sound::Display Radio URLs"
+        print("Sound::Display Radio URLs")
 
     def displayMp3Links(self):
-        print "Sound::Display MP3 links"
+        print("Sound::Display MP3 links")
 
