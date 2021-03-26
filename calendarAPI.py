@@ -1,5 +1,4 @@
 import datetime
-import pickle
 import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -7,10 +6,11 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 
 # If modifying these scopes, delete the file token.pickle.
-# SCOPES = ['https://www.googleapis.com/auth/calendar']
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
-CREDENTIALS_FILE = 'credentials.json'
+CREDENTIALS_FILE = 'documents/credentials.json'
+TOKEN_JSON_FILE = 'documents/token.json'
+# TOKEN_PICKLE_FILE = 'documents/token.pickle'
 
 
 class GoogleCalendarAPI:
@@ -27,8 +27,8 @@ class GoogleCalendarAPI:
         # The file token.json stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
         # time.
-        if os.path.exists('token.json'):
-            self.credentials = Credentials.from_authorized_user_file('token.json', SCOPES)
+        if os.path.exists(TOKEN_JSON_FILE):
+            self.credentials = Credentials.from_authorized_user_file(TOKEN_JSON_FILE, SCOPES)
         # If there are no (valid) credentials available, let the user log in.
         if not self.credentials or not self.credentials.valid:
             if self.credentials and self.credentials.expired and self.credentials.refresh_token:
@@ -37,7 +37,7 @@ class GoogleCalendarAPI:
                 flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
                 self.credentials = flow.run_local_server(port=0)
             # Save the credentials for the next run
-            with open('token.json', 'w') as token:
+            with open(TOKEN_JSON_FILE, 'w') as token:
                 token.write(self.credentials.to_json())
 
         self.google_service = build('calendar', 'v3', credentials=self.credentials)
@@ -123,3 +123,4 @@ if __name__ == '__main__':
     # main()
     myCalendar = GoogleCalendarAPI()
     myCalendar.init_calendar_service()
+    print(myCalendar.get_list_calendars_name())
