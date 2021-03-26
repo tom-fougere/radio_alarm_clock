@@ -76,7 +76,7 @@ class GoogleCalendarAPI:
 
         return calendars_id
 
-    def get_events_from_day(self, calendar_id, day, month, year):
+    def get_events_from_day(self, calendar_id, day, month, year, hour='00', minute='00'):
         """
         Get all events during a defined day (of a defined calendar)
 
@@ -84,12 +84,15 @@ class GoogleCalendarAPI:
         :param day: Day number, string, must have 2 characters
         :param month: Month number, string, must have 2 characters
         :param year: Year number, string
+        :param hour: Hour number, string, must have 2 characters
+        :param minute: Minute number, string, must have 2 characters
         :return:
             - events: List of events from calendar
         """
 
         selected_day = '-'.join([day, month, year])
-        time_min = selected_day + 'T00:00:00Z'
+        selected_hour = ':'.join([hour, minute, '00'])
+        time_min = selected_day + 'T' + selected_hour + 'Z'
         time_max = selected_day + 'T23:59:59Z'
 
         events = self.google_service.events().list(calendarId=calendar_id,

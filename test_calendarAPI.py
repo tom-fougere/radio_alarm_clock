@@ -36,3 +36,6 @@ def test_events_in_calendar():
 
     assert event_available is True
 
+    events = myCalendar.get_events_from_day('primary', '2021', '03', '24', '10', '01')
+    assert len(events['items']) == 1
+
