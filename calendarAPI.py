@@ -5,12 +5,11 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 
-# If modifying these scopes, delete the file token.pickle.
+# If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
 CREDENTIALS_FILE = 'documents/credentials.json'
 TOKEN_JSON_FILE = 'documents/token.json'
-# TOKEN_PICKLE_FILE = 'documents/token.pickle'
 
 
 class GoogleCalendarAPI:
@@ -77,46 +76,26 @@ class GoogleCalendarAPI:
 
         return calendars_id
 
+    def get_events_from_day(self, calendar_id, day, month, year):
+        """
+        Get all events during a defined day (of a defined calendar)
 
+        :param calendar_id: Calendar ID, string
+        :param day: Day number, string, must have 2 characters
+        :param month: Month number, string, must have 2 characters
+        :param year: Year number, string
+        :return:
+            - events: List of events from calendar
+        """
 
-# def get_calendar_service():
-#     creds = None
-#     # The file token.json stores the user's access and refresh tokens, and is
-#     # created automatically when the authorization flow completes for the first
-#     # time.
-#     if os.path.exists('token.json'):
-#         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-#     # If there are no (valid) credentials available, let the user log in.
-#     if not creds or not creds.valid:
-#         if creds and creds.expired and creds.refresh_token:
-#             creds.refresh(Request())
-#         else:
-#             flow = InstalledAppFlow.from_client_secrets_file(
-#                 'credentials.json', SCOPES)
-#             creds = flow.run_local_server(port=0)
-#         # Save the credentials for the next run
-#         with open('token.json', 'w') as token:
-#             token.write(creds.to_json())
-#
-#     service = build('calendar', 'v3', credentials=creds)
-#     return service
-#
-#
-# def main():
-#     service = get_calendar_service()
-#     # Call the Calendar API
-#     print('Getting list of calendars')
-#     calendars_result = service.calendarList().list().execute()
-#
-#     calendars = calendars_result.get('items', [])
-#
-#     if not calendars:
-#         print('No calendars found.')
-#     for calendar in calendars:
-#         summary = calendar['summary']
-#         id = calendar['id']
-#         primary = "Primary" if calendar.get('primary') else ""
-#         print("%s\t%s\t%s" % (summary, id, primary))
+        selected_day = '-'.join([day, month, year])
+        time_min = selected_day + 'T00:00:00Z'
+        time_max = selected_day + 'T23:59:59Z'
+
+        events = self.google_service.events().list(calendarId=calendar_id,
+                                                   timeMin=time_min,
+                                                   timeMax=time_max).execute()
+        return events
 
 
 if __name__ == '__main__':
@@ -124,3 +103,4 @@ if __name__ == '__main__':
     myCalendar = GoogleCalendarAPI()
     myCalendar.init_calendar_service()
     print(myCalendar.get_list_calendars_name())
+    print(myCalendar.get_events_of_day('primary', '2021', '03', '24'))
