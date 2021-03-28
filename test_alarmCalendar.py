@@ -9,7 +9,7 @@ my_calendars = read_dict_file('documents/my_calendars.txt')
 
 def test_alarm():
     myCalendar.set_calendars(alarm_calendar=my_calendars['Reveil'],
-                             public_holiday_calendar=my_calendars['Anniversaires'],
+                             public_holiday_calendar=my_calendars['Jours Feries'],
                              personal_calendar=my_calendars['Elise et Tom'])
 
     date1 = datetime.datetime(2020, 3, 24)
@@ -45,9 +45,9 @@ def test_alarm():
     date7 = datetime.datetime(2020, 4, 2)
     is_alarm7, event7 = myCalendar.is_alarm_today(date7)
     assert is_alarm7 is True
-    assert event7['summary'] == 'Reveil 3'
+    assert event7['summary'] == '[FORCE] Reveil 3'
 
     date8 = datetime.datetime(2020, 4, 3)
     is_alarm8, event8 = myCalendar.is_alarm_today(date8)
     assert is_alarm8 is False
-    assert event8['summary'] == 'Congé 4'
+    assert event8['summary'] == '[OFF] Congé 4'
