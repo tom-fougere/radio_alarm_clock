@@ -25,7 +25,7 @@ def test_list_calendars():
 
 def test_events_in_calendar():
     myCalendar.init_calendar_service()
-    events = myCalendar.get_events_from_day('primary', '2021', '03', '24')
+    events = myCalendar.get_events_from_day('primary', '24', '03', '2021')
 
     assert len(events['items']) == 2
 
@@ -36,6 +36,6 @@ def test_events_in_calendar():
 
     assert event_available is True
 
-    events = myCalendar.get_events_from_day('primary', '2021', '03', '24', '10', '01')
+    events = myCalendar.get_events_from_day('primary', '24', '03', '2021', '10', '01')
     assert len(events['items']) == 1
 

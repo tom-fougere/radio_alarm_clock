@@ -90,10 +90,10 @@ class GoogleCalendarAPI:
             - events: List of events from calendar
         """
 
-        selected_day = '-'.join([day, month, year])
+        selected_day = '-'.join([year, month, day])
         selected_hour = ':'.join([hour, minute, '00'])
         time_min = selected_day + 'T' + selected_hour + 'Z'
-        time_max = selected_day + 'T23:59:59Z'
+        time_max = selected_day + 'T22:59:59Z'
 
         events = self.google_service.events().list(calendarId=calendar_id,
                                                    timeMin=time_min,
@@ -106,4 +106,4 @@ if __name__ == '__main__':
     myCalendar = GoogleCalendarAPI()
     myCalendar.init_calendar_service()
     print(myCalendar.get_list_calendars_name())
-    print(myCalendar.get_events_of_day('primary', '2021', '03', '24'))
+    print(myCalendar.get_events_from_day('primary', '24', '03', '2021'))
