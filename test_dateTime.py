@@ -71,3 +71,8 @@ def test_update_time():
 
     assert os_datetime_seconds1 < os_datetime_seconds2
     assert ntp_datetime_seconds1 < ntp_datetime_seconds2
+
+
+def test_reliabel_datetime():
+
+    reliable_time = ReliableDate()
