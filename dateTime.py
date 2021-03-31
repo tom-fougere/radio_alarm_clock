@@ -67,7 +67,7 @@ class NTPDate:
     port = 123
     buf = 1024
     address = (host, port)
-    msg = '\x1b' + 47 * '\0'
+    msg = b'\x1b' + 47 * b'\0'
 
     def __init__(self):
         # connect to server
@@ -124,3 +124,12 @@ class NTPDate:
 
     def display_time(self):
         print("%02d:%02d" % (self.currentDatetime.hour, self.currentDatetime.minute))
+
+    def get_datetime(self):
+        current_datetime = "%04d/%02d/%02d %02d:%02d:%02d" % (self.currentDatetime.year,
+                                                              self.currentDatetime.month,
+                                                              self.currentDatetime.day,
+                                                              self.currentDatetime.hour,
+                                                              self.currentDatetime.minute,
+                                                              self.currentDatetime.second)
+        return current_datetime
