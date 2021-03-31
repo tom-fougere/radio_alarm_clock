@@ -99,11 +99,3 @@ class GoogleCalendarAPI:
                                                    timeMin=time_min,
                                                    timeMax=time_max).execute()
         return events
-
-
-if __name__ == '__main__':
-    # main()
-    myCalendar = GoogleCalendarAPI()
-    myCalendar.init_calendar_service()
-    print(myCalendar.get_list_calendars_name())
-    print(myCalendar.get_events_from_day('primary', '24', '03', '2021'))
