@@ -46,7 +46,7 @@ class OSDate:
     def display_time(self):
         print("%02d:%02d" % (self.currentDatetime.hour, self.currentDatetime.minute))
 
-    def get_datetime(self):
+    def get_datetime_string(self):
         current_datetime = "%04d/%02d/%02d %02d:%02d:%02d" % (self.currentDatetime.year,
                                                               self.currentDatetime.month,
                                                               self.currentDatetime.day,
@@ -125,7 +125,7 @@ class NTPDate:
     def display_time(self):
         print("%02d:%02d" % (self.currentDatetime.hour, self.currentDatetime.minute))
 
-    def get_datetime(self):
+    def get_datetime_string(self):
         current_datetime = "%04d/%02d/%02d %02d:%02d:%02d" % (self.currentDatetime.year,
                                                               self.currentDatetime.month,
                                                               self.currentDatetime.day,
@@ -133,3 +133,16 @@ class NTPDate:
                                                               self.currentDatetime.minute,
                                                               self.currentDatetime.second)
         return current_datetime
+
+
+class SecureDate:
+
+    def __init__(self):
+        self.os_date = OSDate()
+        self.ntp_date = NTPDate()
+        self.currentDatetime = self.ntp_date.currentDatetime
+
+    def update(self):
+        self.os_date.update()
+        self.ntp_date.update()
+        self.currentDatetime = self.ntp_date.currentDatetime
