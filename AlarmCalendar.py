@@ -1,5 +1,4 @@
 from calendarAPI import *
-import pytz
 
 OFF_STRING = '[off]'
 FORCE_STRING = '[force]'
@@ -23,20 +22,44 @@ class AlarmCalendar:
 
     def is_alarm_today(self, today_datetime):
 
-        # Convert the datetime to string
-        today_datetime_utc = today_datetime.astimezone(pytz.utc)
-
         # Get the events from the three calendars
-        events_alarm_calendar = self.google_service.get_events_from_day(self.alarm_calendar, today_datetime_utc)
+        events_alarm_calendar = self.google_service.get_events_from_day(self.alarm_calendar,
+                                                                        today_datetime)
 
-        events_public_holiday_calendar = self.google_service.get_events_from_day(self.public_holiday_calendar, today_datetime_utc)
+        events_public_holiday_calendar = self.google_service.get_events_from_day(self.public_holiday_calendar,
+                                                                                 today_datetime)
 
-        events_personal_calendar = self.google_service.get_events_from_day(self.personal_calendar, today_datetime_utc)
+        events_personal_calendar = self.google_service.get_events_from_day(self.personal_calendar,
+                                                                           today_datetime)
 
         # Sort the events to get the one that should trigger a ringing
-        is_alarm_today, alarm_event = get_highest_priority_event(events_alarm_calendar, events_public_holiday_calendar, events_personal_calendar)
+        is_alarm_today, alarm_event = get_highest_priority_event(events_alarm_calendar,
+                                                                 events_public_holiday_calendar,
+                                                                 events_personal_calendar)
 
         return is_alarm_today, alarm_event
+
+    def is_alarm_tomorrow(self, today_datetime):
+
+        tomorrow_datetime = today_datetime + datetime.timedelta(days=1)
+
+        # Get the events from the three calendars
+        events_alarm_calendar = self.google_service.get_events_from_day(self.alarm_calendar,
+                                                                        tomorrow_datetime,
+                                                                        reset_hour=True)
+
+        events_public_holiday_calendar = self.google_service.get_events_from_day(self.public_holiday_calendar,
+                                                                                 tomorrow_datetime)
+
+        events_personal_calendar = self.google_service.get_events_from_day(self.personal_calendar,
+                                                                           tomorrow_datetime)
+
+        # Sort the events to get the one that should trigger a ringing
+        is_alarm_tomorrow, alarm_event = get_highest_priority_event(events_alarm_calendar,
+                                                                    events_public_holiday_calendar,
+                                                                    events_personal_calendar)
+
+        return is_alarm_tomorrow, alarm_event
 
 
 def get_first_event(events, priority_string=''):
