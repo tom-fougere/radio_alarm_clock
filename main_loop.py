@@ -23,8 +23,8 @@ if __name__ == '__main__':
         print(myDatetime.get_datetime_string())
 
         # Search if alarm is
-        is_alarm_today, event_today = myCalendar.is_alarm_today(current_datetime)
-        is_alarm_tomorrow, event_tomorrow = myCalendar.is_alarm_today(current_datetime + timedelta(days=1))
+        is_alarm_today, event_today = myCalendar.is_alarm_today(current_datetime, reset_hour=True)
+        is_alarm_tomorrow, event_tomorrow = myCalendar.is_alarm_tomorrow(current_datetime)
 
         # Display datetime in the screen
         # display(current_datetime)

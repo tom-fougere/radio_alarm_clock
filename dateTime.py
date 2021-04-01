@@ -120,9 +120,10 @@ class ReliableDate(CurrentDate):
         try:
             self.ntp_date = NTPDate()
             self.current_datetime = self.ntp_date.get_datetime()
-        except():
+        except OSError as e:
             self.ntp_date = None
             self.current_datetime = self.os_date.get_datetime()
+            print('ERROR: dateTime l126')
 
         # Save the date of the init to check internet connection regularly
         self.save_datetime = self.current_datetime
