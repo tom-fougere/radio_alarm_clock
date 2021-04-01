@@ -1,4 +1,5 @@
 from calendarAPI import *
+import pytz
 
 OFF_STRING = '[off]'
 FORCE_STRING = '[force]'
@@ -23,26 +24,14 @@ class AlarmCalendar:
     def is_alarm_today(self, today_datetime):
 
         # Convert the datetime to string
-        day, month, year = today_datetime.day, today_datetime.month, today_datetime.year
-        day = str(day).zfill(2)
-        month = str(month).zfill(2)
-        year = str(year).zfill(4)
+        today_datetime_utc = today_datetime.astimezone(pytz.utc)
 
         # Get the events from the three calendars
-        events_alarm_calendar = self.google_service.get_events_from_day(self.alarm_calendar,
-                                                                        day=day,
-                                                                        month=month,
-                                                                        year=year)
+        events_alarm_calendar = self.google_service.get_events_from_day(self.alarm_calendar, today_datetime_utc)
 
-        events_public_holiday_calendar = self.google_service.get_events_from_day(self.public_holiday_calendar,
-                                                                                 day=day,
-                                                                                 month=month,
-                                                                                 year=year)
+        events_public_holiday_calendar = self.google_service.get_events_from_day(self.public_holiday_calendar, today_datetime_utc)
 
-        events_personal_calendar = self.google_service.get_events_from_day(self.personal_calendar,
-                                                                           day=day,
-                                                                           month=month,
-                                                                           year=year)
+        events_personal_calendar = self.google_service.get_events_from_day(self.personal_calendar, today_datetime_utc)
 
         # Sort the events to get the one that should trigger a ringing
         is_alarm_today, alarm_event = get_highest_priority_event(events_alarm_calendar, events_public_holiday_calendar, events_personal_calendar)
