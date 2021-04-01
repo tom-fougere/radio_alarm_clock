@@ -1,5 +1,5 @@
-from dateTime import OSDate
-from urllib2 import urlopen, URLError, HTTPError
+from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
 import time
 import socket
 
@@ -8,40 +8,39 @@ class InternetChecker:
     def __init__(self):
         self.url = 'https://google.com/'
         self.url_start = 'https://www.google'
-        self.logFile = 'internet_connection.txt'
-        self.numberOfTests = 4
+        self.duration_check_connection = 2  # seconds
+        self.number_of_tests = 4
 
-    def check_connection(self):
+    def is_connected(self):
         socket.setdefaulttimeout(23)
 
-        index = 0
-        good_connection = 0
-        while index <= self.numberOfTests:
-            try:
-                response = urlopen(self.url)
-            except (HTTPError, URLError):
-                self.internet_down()
-            else:
-                response.read()
-                if response.url.startswith(self.url_start):
-                    good_connection += 1
-                else:
-                    self.internet_down()
+        nb_connection = 0
+        for i_test in range(self.number_of_tests):
 
-            index += 1
-            time.sleep(0.5)
+            # Count the number of correct connection
+            is_connected = self.check_connection_once()
+            if is_connected:
+                nb_connection += 1
 
-        if good_connection == 5:
+            # Sleep
+            time.sleep(self.duration_check_connection/self.number_of_tests)
+
+        if nb_connection == self.number_of_tests:
             print("Internet Connected")
             return True
         else:
-            print('At least one connection error')
+            print(str(self.number_of_tests - nb_connection), '/', str(nb_connection), 'connection errors')
             return False
 
-    def internet_down(self):
-        print("Internet Down")
-        current_time = OSDate()
-        ct = current_time.get_datetime()
-        f = open(self.logFile, 'a')
-        f.write("%s\n" % ct)
-        f.close()
+    def check_connection_once(self):
+        try:
+            response = urlopen(self.url)
+        except (HTTPError, URLError):
+            connected = False
+        else:
+            response.read()
+            if response.url.startswith(self.url_start):
+                connected = True
+            else:
+                connected = False
+        return connected
