@@ -1,5 +1,3 @@
-from InternetCheck import InternetChecker
-
 from abc import ABC, abstractmethod
 import datetime
 from socket import AF_INET, SOCK_DGRAM
