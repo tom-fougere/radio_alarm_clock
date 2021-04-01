@@ -7,6 +7,17 @@ import socket
 import struct
 import time
 
+SECOND_MARGIN = 1
+
+# NTP server
+NTP_SERVER = dict()
+NTP_SERVER['host'] = "0.fr.pool.ntp.org"
+NTP_SERVER['time1970'] = 2208988800  # reference time (in seconds since 1900-01-01 00:00:00)
+NTP_SERVER['port'] = 123
+NTP_SERVER['buf'] = 1024
+NTP_SERVER['address'] = (NTP_SERVER['host'], NTP_SERVER['port'])
+NTP_SERVER['msg'] = b'\x1b' + 47 * b'\0'
+
 
 class CurrentDate(ABC):
 
@@ -51,6 +62,9 @@ class CurrentDate(ABC):
     def display_time(self):
         print("%02d:%02d" % (self.currentDatetime.hour, self.currentDatetime.minute))
 
+    def get_datetime(self):
+        return self.currentDatetime
+
     def get_datetime_string(self):
         current_datetime = "%04d/%02d/%02d %02d:%02d:%02d" % (self.currentDatetime.year,
                                                               self.currentDatetime.month,
@@ -71,62 +85,61 @@ class OSDate(CurrentDate):
 
 
 class NTPDate(CurrentDate):
-    # NTP server
-    host = "0.fr.pool.ntp.org"
-
-    # reference time (in seconds since 1900-01-01 00:00:00)
-    TIME1970 = 2208988800  # 1970-01-01 00:00:00
-
-    # others parameters
-    port = 123
-    buf = 1024
-    address = (host, port)
-    msg = b'\x1b' + 47 * b'\0'
 
     def __init__(self):
-        # connect to server
-        client = socket.socket(AF_INET, SOCK_DGRAM)
-        client.sendto(NTPDate.msg, NTPDate.address)
-        msg, address = client.recvfrom(NTPDate.buf)
 
-        t = struct.unpack("!12I", msg)[10]
-        t -= NTPDate.TIME1970
-
-        # self.currentDatetime = time.ctime(t)
-        self.currentDatetime = datetime.datetime.strptime(time.ctime(t), "%a %b %d %H:%M:%S %Y")
+        self.currentDatetime = get_internet_datetime()
 
     def update(self):
-        # connect to server
-        client = socket.socket(AF_INET, SOCK_DGRAM)
-        client.sendto(NTPDate.msg, NTPDate.address)
-        msg, address = client.recvfrom(NTPDate.buf)
 
-        t = struct.unpack("!12I", msg)[10]
-        t -= NTPDate.TIME1970
-
-        self.currentDatetime = datetime.datetime.strptime(time.ctime(t), "%a %b %d %H:%M:%S %Y")
+        self.currentDatetime = get_internet_datetime()
 
 
-class ReliableDate:
+def get_internet_datetime(parameters=NTP_SERVER):
+    """
+    Connect to a server (NTP) to get the time with internet
+
+    :param parameters: parameters of the server, dict
+    :return:
+        - datetime
+    """
+    # connect to server
+    client = socket.socket(AF_INET, SOCK_DGRAM)
+    client.sendto(parameters['msg'], parameters['address'])
+    msg, address = client.recvfrom(parameters['buf'])
+
+    t = struct.unpack("!12I", msg)[10]
+    t -= parameters['time1970']
+
+    return datetime.datetime.strptime(time.ctime(t), "%a %b %d %H:%M:%S %Y")
+
+
+class ReliableDate(CurrentDate):
 
     def __init__(self):
         self.os_date = OSDate()
-        self.ntp_date = NTPDate()
-        self.internet_connection = InternetChecker()
 
-        self.is_connected, self.current_datetime = self.get_internet_date()
+        try:
+            self.ntp_date = NTPDate()
+            self.current_datetime = self.ntp_date.get_datetime()
+        except():
+            self.ntp_date = None
+            self.current_datetime = self.os_date.get_datetime()
+
+        # Save the date of the init to check internet connection regularly
+        self.save_datetime = self.current_datetime
+        self.need_cycle_double_check = True
 
     def update(self, check_internet_connection=False):
 
-        if check_internet_connection:
-            self.is_connected, self.current_datetime = self.get_internet_date()
+        self.os_date.update()
+        try:
+            self.ntp_date.update()
+            self.current_datetime = self.ntp_date.get_datetime()
+        except():
+            self.current_datetime = self.os_date.get_datetime()
 
-    def get_internet_date(self):
-        if self.internet_connection.is_connected():
-            internet_datetime = self.ntp_date.currentDatetime
-            is_connected = True
-        else:
-            self.current_datetime = self.os_date.currentDatetime
-            is_connected = False
+    def is_consistent_datetime(self):
+        return abs((self.ntp_date.get_datetime() - self.os_date.get_datetime()).total_seconds()) < SECOND_MARGIN
 
-        return is_connected, internet_datetime
+

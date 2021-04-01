@@ -2,6 +2,8 @@ from dateTime import *
 import datetime
 import time
 
+SECOND_MARGIN = 2
+
 
 def test_os_datetime():
     os_datetime = OSDate()
@@ -38,7 +40,7 @@ def test_ntp_datetime():
     assert ntp_datetime.get_day() == now.day
     assert ntp_datetime.get_hour() == now.hour
     assert ntp_datetime.get_minute() == now.minute
-    assert ntp_datetime.get_datetime_string() == now_string
+    assert ntp_datetime.get_datetime_string()[:-2] == now_string[:-2]
 
 
 def test_update_time():
@@ -53,7 +55,7 @@ def test_update_time():
                             ntp_datetime.get_minute()*60 + \
                             ntp_datetime.get_second()
 
-    assert os_datetime_seconds1 == ntp_datetime_seconds1
+    assert -SECOND_MARGIN <= (os_datetime_seconds1 - ntp_datetime_seconds1) <= SECOND_MARGIN
 
     # Wait few seconds
     time.sleep(2)
@@ -73,6 +75,7 @@ def test_update_time():
     assert ntp_datetime_seconds1 < ntp_datetime_seconds2
 
 
-def test_reliabel_datetime():
+def test_reliable_datetime():
 
     reliable_time = ReliableDate()
+    assert reliable_time.is_consistent_datetime() is True
