@@ -20,11 +20,12 @@ class AlarmCalendar:
         self.public_holiday_calendar = public_holiday_calendar
         self.personal_calendar = personal_calendar
 
-    def is_alarm_today(self, today_datetime):
+    def is_alarm_today(self, today_datetime, reset_hour=False):
 
         # Get the events from the three calendars
         events_alarm_calendar = self.google_service.get_events_from_day(self.alarm_calendar,
-                                                                        today_datetime)
+                                                                        today_datetime,
+                                                                        reset_hour=reset_hour)
 
         events_public_holiday_calendar = self.google_service.get_events_from_day(self.public_holiday_calendar,
                                                                                  today_datetime)
