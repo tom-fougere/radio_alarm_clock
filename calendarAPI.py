@@ -1,4 +1,5 @@
 import datetime
+import pytz
 import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -76,34 +77,49 @@ class GoogleCalendarAPI:
 
         return calendars_id
 
-    def get_events_from_day(self, calendar_id, day, month, year, hour='00', minute='00'):
+    def get_events_from_day(self, calendar_id, today_datetime, reset_hour=False):
         """
         Get all events during a defined day (of a defined calendar)
 
         :param calendar_id: Calendar ID, string
-        :param day: Day number, string, must have 2 characters
-        :param month: Month number, string, must have 2 characters
-        :param year: Year number, string
-        :param hour: Hour number, string, must have 2 characters
-        :param minute: Minute number, string, must have 2 characters
+        :param today_datetime: Date, datetime
+        :param reset_hour: Boolean to start today datetime to 0:00:00
         :return:
             - events: List of events from calendar
         """
 
-        selected_day = '-'.join([year, month, day])
-        selected_hour = ':'.join([hour, minute, '00'])
-        time_min = selected_day + 'T' + selected_hour + 'Z'
-        time_max = selected_day + 'T22:59:59Z'
+        if reset_hour:
+            today_datetime = today_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
 
+        # Define the start time (timeMin)
+        today_datetime_utc = today_datetime.astimezone(pytz.utc)
+
+        today_day = '-'.join([str(today_datetime_utc.year),
+                              str(today_datetime_utc.month),
+                              str(today_datetime_utc.day)])
+        today_hour = ':'.join([str(today_datetime_utc.hour),
+                               str(today_datetime_utc.minute),
+                               '00'])  # Always 0 second
+
+        time_min = today_day + 'T' + today_hour + 'Z'
+
+        # Define the end time (timeMax)
+        tomorrow_datetime = today_datetime
+        tomorrow_datetime = tomorrow_datetime.replace(hour=23, minute=59, second=59)
+        tomorrow_datetime_utc = tomorrow_datetime.astimezone(pytz.utc)
+
+        end_day = '-'.join([str(tomorrow_datetime_utc.year),
+                            str(tomorrow_datetime_utc.month),
+                            str(tomorrow_datetime_utc.day)])
+        end_hour = ':'.join([str(tomorrow_datetime_utc.hour),
+                             str(tomorrow_datetime_utc.minute),
+                             str(tomorrow_datetime_utc.second)])
+
+        time_max = end_day + 'T' + end_hour + 'Z'
+
+        x = datetime.datetime.now(datetime.timezone.utc).astimezone().tzname()
         events = self.google_service.events().list(calendarId=calendar_id,
                                                    timeMin=time_min,
-                                                   timeMax=time_max).execute()
+                                                   timeMax=time_max,
+                                                   timeZone=x).execute()
         return events
-
-
-if __name__ == '__main__':
-    # main()
-    myCalendar = GoogleCalendarAPI()
-    myCalendar.init_calendar_service()
-    print(myCalendar.get_list_calendars_name())
-    print(myCalendar.get_events_from_day('primary', '24', '03', '2021'))

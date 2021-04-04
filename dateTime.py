@@ -21,76 +21,76 @@ class CurrentDate(ABC):
 
     @abstractmethod
     def __init__(self):
-        self.currentDatetime = datetime.min
+        self.current_datetime = datetime.min
 
     @abstractmethod
     def update(self):
         pass
 
     def get_year(self):
-        return self.currentDatetime.year
+        return self.current_datetime.year
 
     def get_month(self):
-        return self.currentDatetime.month
+        return self.current_datetime.month
 
     def get_day(self):
-        return self.currentDatetime.day
+        return self.current_datetime.day
 
     def get_hour(self):
-        return self.currentDatetime.hour
+        return self.current_datetime.hour
 
     def get_minute(self):
-        return self.currentDatetime.minute
+        return self.current_datetime.minute
 
     def get_second(self):
-        return self.currentDatetime.second
+        return self.current_datetime.second
 
     def get_weekday(self):
-        return self.currentDatetime.isoweekday()
+        return self.current_datetime.isoweekday()
 
     def get_week_of_the_year(self):
-        return self.currentDatetime.isocalendar()[1]
+        return self.current_datetime.isocalendar()[1]
 
     def get_day_of_the_year(self):
-        return self.currentDatetime.timetuple().tm_yday
+        return self.current_datetime.timetuple().tm_yday
 
     def display_date(self):
-        print("%04d/%02d/%02d" % (self.currentDatetime.year, self.currentDatetime.month, self.currentDatetime.day))
+        print("%04d/%02d/%02d" % (self.current_datetime.year, self.current_datetime.month, self.current_datetime.day))
 
     def display_time(self):
-        print("%02d:%02d" % (self.currentDatetime.hour, self.currentDatetime.minute))
+        print("%02d:%02d" % (self.current_datetime.hour, self.current_datetime.minute))
 
     def get_datetime(self):
-        return self.currentDatetime
+        return self.current_datetime
 
     def get_datetime_string(self):
-        current_datetime = "%04d/%02d/%02d %02d:%02d:%02d" % (self.currentDatetime.year,
-                                                              self.currentDatetime.month,
-                                                              self.currentDatetime.day,
-                                                              self.currentDatetime.hour,
-                                                              self.currentDatetime.minute,
-                                                              self.currentDatetime.second)
+        current_datetime = "%04d/%02d/%02d %02d:%02d:%02d" % (self.current_datetime.year,
+                                                              self.current_datetime.month,
+                                                              self.current_datetime.day,
+                                                              self.current_datetime.hour,
+                                                              self.current_datetime.minute,
+                                                              self.current_datetime.second)
         return current_datetime
 
 
 class OSDate(CurrentDate):
 
     def __init__(self):
-        self.currentDatetime = datetime.datetime.now()
+        self.current_datetime = datetime.datetime.now()
 
     def update(self):
-        self.currentDatetime = datetime.datetime.now()
+        self.current_datetime = datetime.datetime.now()
 
 
 class NTPDate(CurrentDate):
 
     def __init__(self):
 
-        self.currentDatetime = get_internet_datetime()
+        self.current_datetime = get_internet_datetime()
 
     def update(self):
 
-        self.currentDatetime = get_internet_datetime()
+        self.current_datetime = get_internet_datetime()
 
 
 def get_internet_datetime(parameters=NTP_SERVER):
@@ -120,9 +120,10 @@ class ReliableDate(CurrentDate):
         try:
             self.ntp_date = NTPDate()
             self.current_datetime = self.ntp_date.get_datetime()
-        except():
+        except OSError as e:
             self.ntp_date = None
             self.current_datetime = self.os_date.get_datetime()
+            print('ERROR: dateTime l126')
 
         # Save the date of the init to check internet connection regularly
         self.save_datetime = self.current_datetime
