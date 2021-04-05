@@ -11,6 +11,8 @@ class Event:
         self.title = ''
         self.start_time = datetime.min
         self.end_time = datetime.min
+        self.radio = 'nrj'
+        self.repetition = 10
 
     def set_event(self, is_alarm, event):
 
@@ -19,16 +21,18 @@ class Event:
 
         self.raw['start'] = event['start']['dateTime']
         self.raw['end'] = event['end']['dateTime']
-
         self.raw['summary'] = event['summary']
-        self.raw['description'] = event['description']
+        try:
+            self.raw['description'] = event['description']
+        except KeyError:
+            self.raw['description'] = ''
 
         self.format_data()
 
     def format_data(self):
 
         # Set the title as the summary of the event removing the hashtag key
-        hashtag_pattern = "^(#[a-zA-Z]+) ([a-zA-Z\w ]+)"
+        hashtag_pattern = r"^(#[a-zA-Z]+) ([a-zA-Z\w ]+)"
         hashtag_search = re.search(hashtag_pattern, self.raw['summary'])
         if hashtag_search:
             self.title = hashtag_search.group(2)
@@ -39,9 +43,27 @@ class Event:
         self.start_time = datetime.strptime(self.raw['start'], '%Y-%m-%dT%H:%M:%S%z')
         self.end_time = datetime.strptime(self.raw['end'], '%Y-%m-%dT%H:%M:%S%z')
 
-        # Set parameters
-        self.radio = extract_information_with_hashtag(self.raw['description'] + '#', "#radio")
-        self.repetition = extract_information_with_hashtag(self.raw['description'] + '#', "#repetition")
+        # Set radio
+        self.set_radio(extract_information_with_hashtag(self.raw['description'] + '#', "#radio"))
+
+        # Set repetition: Extract the digit of the repetition text
+        text_repetition = extract_information_with_hashtag(self.raw['description'] + '#', "#repetition")
+        digits_pattern = "([0-9]{1,2})"
+        digits_search = re.search(digits_pattern, text_repetition)
+        if len(text_repetition) > 0 and digits_search:
+            self.set_repetition(digits_search.group(1))
+        else:
+            print("There is no digits in #repetition")
+
+    def set_radio(self, radio_str):
+
+        if len(radio_str) > 0:
+            self.radio = radio_str
+
+    def set_repetition(self, repetition_value):
+
+        if len(repetition_value) > 0:
+            self.repetition = int(repetition_value)
 
 
 def extract_information_with_hashtag(full_text, hashtag):
