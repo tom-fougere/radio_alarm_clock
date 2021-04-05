@@ -1,7 +1,7 @@
 from calendarAPI import *
 
-OFF_STRING = '[off]'
-FORCE_STRING = '[force]'
+OFF_STRING = '#off'
+FORCE_STRING = '#force'
 
 
 class AlarmCalendar:
