@@ -150,6 +150,7 @@ def test_snooze_ringing():
     alarm_is_ringing = my_event.is_ringing(one_date)
     assert alarm_is_ringing is False
     assert my_event.active is True
+    assert len(my_event.alarms) == 5
 
     # 5 minutes later
     alarm_is_ringing = my_event.is_ringing(one_date + datetime.timedelta(minutes=5))
