@@ -17,12 +17,12 @@ class Event:
 
         self.active = False
         self.ringing = False
-        self.snooze = False
 
     def set_event(self, is_alarm, event):
 
         self.id = event['id']
         self.is_alarm = is_alarm
+        self.active = self.is_alarm
 
         self.raw['start'] = event['start']['dateTime']
         self.raw['end'] = event['end']['dateTime']
@@ -45,9 +45,9 @@ class Event:
         else:
             self.title = self.raw['summary']
 
-        # Set the start/end time as datetime
-        self.start_time = datetime.strptime(self.raw['start'], '%Y-%m-%dT%H:%M:%S%z')
-        self.end_time = datetime.strptime(self.raw['end'], '%Y-%m-%dT%H:%M:%S%z')
+        # Set the start/end time as datetime (Remove useless timezone)
+        self.start_time = datetime.strptime(self.raw['start'], '%Y-%m-%dT%H:%M:%S%z').replace(tzinfo=None)
+        self.end_time = datetime.strptime(self.raw['end'], '%Y-%m-%dT%H:%M:%S%z').replace(tzinfo=None)
 
         # Set radio
         self.set_radio(extract_information_with_hashtag(self.raw['description'] + '#', "#radio"))
@@ -70,6 +70,28 @@ class Event:
 
         if len(repetition_value) > 0:
             self.repetition = int(repetition_value)
+
+    def is_ringing(self, current_datetime):
+        if self.start_time <= current_datetime <= self.end_time:
+            if self.active is True:
+                if self.ringing is False:
+                    if current_datetime in self.alarms:
+                        self.ringing = True
+                        self.alarms.pop(0)  # Remove first alarm to avoid new alarm for the same datetime
+                    else:
+                        self.ringing = False
+            else:
+                self.ringing = False
+        else:
+            self.ringing = False
+
+        return self.ringing
+
+    def snooze(self):
+        self.ringing = False
+
+    def stop_alarm(self):
+        self.active = False
 
     def set_alarm_repetition(self):
 
@@ -94,8 +116,6 @@ class Event:
 
         self.active = False
         self.ringing = False
-        self.snooze = False
-
 
 
 def extract_information_with_hashtag(full_text, hashtag):

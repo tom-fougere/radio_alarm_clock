@@ -25,8 +25,8 @@ def test_event():
 
     assert my_event.is_alarm is True
     assert my_event.title == 'essai1'
-    assert my_event.start_time.replace(tzinfo=None) == datetime.datetime(2020, 3, 30, hour=9, minute=30)
-    assert my_event.end_time.replace(tzinfo=None) == datetime.datetime(2020, 3, 30, hour=10, minute=30)
+    assert my_event.start_time == datetime.datetime(2020, 3, 30, hour=9, minute=30)
+    assert my_event.end_time == datetime.datetime(2020, 3, 30, hour=10, minute=30)
     assert my_event.radio == 'nrj'  # default value
     assert my_event.repetition == 10  # default value
 
@@ -38,8 +38,8 @@ def test_event():
 
     assert my_event.is_alarm is True
     assert my_event.title == 'essai2'
-    assert my_event.start_time.replace(tzinfo=None) == datetime.datetime(2020, 3, 31, hour=12, minute=00)
-    assert my_event.end_time.replace(tzinfo=None) == datetime.datetime(2020, 3, 31, hour=13, minute=00)
+    assert my_event.start_time == datetime.datetime(2020, 3, 31, hour=12, minute=00)
+    assert my_event.end_time == datetime.datetime(2020, 3, 31, hour=13, minute=00)
     assert my_event.radio == 'nrj'  # default value
     assert my_event.repetition == 10  # default value
 
@@ -51,13 +51,13 @@ def test_event():
 
     assert my_event.is_alarm is True
     assert my_event.title == 'essai3'
-    assert my_event.start_time.replace(tzinfo=None) == datetime.datetime(2020, 4, 1, hour=15, minute=30)
-    assert my_event.end_time.replace(tzinfo=None) == datetime.datetime(2020, 4, 1, hour=16, minute=30)
+    assert my_event.start_time == datetime.datetime(2020, 4, 1, hour=15, minute=30)
+    assert my_event.end_time == datetime.datetime(2020, 4, 1, hour=16, minute=30)
     assert my_event.radio == 'fun'
     assert my_event.repetition == 15
 
 
-def test_event_alarms():
+def test_list_of_alarms():
 
     # First day
     one_date = datetime.datetime(2020, 3, 30)
@@ -73,5 +73,93 @@ def test_event_alarms():
               datetime.datetime(2020, 3, 30, hour=9, minute=30) + datetime.timedelta(minutes=50)]
 
     assert len(my_event.alarms) == 6
-    assert all([class_datetime.replace(tzinfo=None) == expect_datetime
+    assert all([class_datetime == expect_datetime
                 for class_datetime, expect_datetime in zip(my_event.alarms, alarms)])
+
+
+def test_start_stop_ringing():
+
+    # First day
+    one_date = datetime.datetime(2020, 3, 30, hour=9, minute=20, second=0)
+    is_alarm, events = myCalendar.is_alarm_today(one_date, reset_hour=True)
+
+    my_event.set_event(is_alarm, events)
+
+    # Before event
+    alarm_is_ringing = my_event.is_ringing(one_date)
+    assert alarm_is_ringing is False
+    assert my_event.active is True
+
+    # At the time of the event
+    one_date = datetime.datetime(2020, 3, 30, hour=9, minute=30, second=0)
+    alarm_is_ringing = my_event.is_ringing(one_date)
+    assert alarm_is_ringing is True
+    assert my_event.active is True
+
+    # Stop ringing
+    my_event.stop_alarm()
+
+    # New test at the same time
+    alarm_is_ringing = my_event.is_ringing(one_date)
+    assert alarm_is_ringing is False
+    assert my_event.active is False
+
+
+def test_end_of_datetime_range():
+
+    # First day
+    one_date = datetime.datetime(2020, 3, 30, hour=9, minute=20, second=0)
+    is_alarm, events = myCalendar.is_alarm_today(one_date, reset_hour=True)
+
+    my_event.set_event(is_alarm, events)
+
+    # At the time of the event
+    one_date = datetime.datetime(2020, 3, 30, hour=9, minute=30, second=0)
+    alarm_is_ringing = my_event.is_ringing(one_date)
+    assert alarm_is_ringing is True
+    assert my_event.active is True
+
+    # At the last minute of the event
+    alarm_is_ringing = my_event.is_ringing(one_date + datetime.timedelta(hours=1))
+    assert alarm_is_ringing is True
+    assert my_event.active is True
+
+    # After the end of
+    alarm_is_ringing = my_event.is_ringing(one_date + datetime.timedelta(hours=1, minutes=1))
+    assert alarm_is_ringing is False
+    assert my_event.active is True
+
+
+def test_snooze_ringing():
+    # First day
+    one_date = datetime.datetime(2020, 3, 30, hour=9, minute=20, second=0)
+    is_alarm, events = myCalendar.is_alarm_today(one_date, reset_hour=True)
+
+    my_event.set_event(is_alarm, events)
+
+    # At the time of the event
+    one_date = datetime.datetime(2020, 3, 30, hour=9, minute=30, second=0)
+    alarm_is_ringing = my_event.is_ringing(one_date)
+    assert alarm_is_ringing is True
+    assert my_event.active is True
+
+    # Stop ringing
+    my_event.snooze()
+
+    # New test at the same time
+    alarm_is_ringing = my_event.is_ringing(one_date)
+    assert alarm_is_ringing is False
+    assert my_event.active is True
+
+    # 5 minutes later
+    alarm_is_ringing = my_event.is_ringing(one_date + datetime.timedelta(minutes=5))
+    assert alarm_is_ringing is False
+    assert my_event.active is True
+
+    # 10 minutes later
+    alarm_is_ringing = my_event.is_ringing(one_date + datetime.timedelta(minutes=10))
+    assert alarm_is_ringing is True
+    assert my_event.active is True
+
+
+
