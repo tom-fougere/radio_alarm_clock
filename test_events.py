@@ -1,5 +1,4 @@
 from events import Event
-
 from AlarmCalendar import *
 from documents.rw_dict import *
 
@@ -10,6 +9,10 @@ myCalendar.set_calendars(alarm_calendar=my_calendars['Reveil'],
                          personal_calendar=my_calendars['Elise et Tom'])
 
 my_event = Event()
+
+
+def setup_function():
+    my_event.clear_event()
 
 
 def test_event():
@@ -52,3 +55,23 @@ def test_event():
     assert my_event.end_time.replace(tzinfo=None) == datetime.datetime(2020, 4, 1, hour=16, minute=30)
     assert my_event.radio == 'fun'
     assert my_event.repetition == 15
+
+
+def test_event_alarms():
+
+    # First day
+    one_date = datetime.datetime(2020, 3, 30)
+    is_alarm, events = myCalendar.is_alarm_today(one_date)
+
+    my_event.set_event(is_alarm, events)
+
+    alarms = [datetime.datetime(2020, 3, 30, hour=9, minute=30),
+              datetime.datetime(2020, 3, 30, hour=9, minute=30) + datetime.timedelta(minutes=10),
+              datetime.datetime(2020, 3, 30, hour=9, minute=30) + datetime.timedelta(minutes=20),
+              datetime.datetime(2020, 3, 30, hour=9, minute=30) + datetime.timedelta(minutes=30),
+              datetime.datetime(2020, 3, 30, hour=9, minute=30) + datetime.timedelta(minutes=40),
+              datetime.datetime(2020, 3, 30, hour=9, minute=30) + datetime.timedelta(minutes=50)]
+
+    assert len(my_event.alarms) == 6
+    assert all([class_datetime.replace(tzinfo=None) == expect_datetime
+                for class_datetime, expect_datetime in zip(my_event.alarms, alarms)])

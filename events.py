@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 
 
@@ -11,8 +11,13 @@ class Event:
         self.title = ''
         self.start_time = datetime.min
         self.end_time = datetime.min
+        self.alarms = []
         self.radio = 'nrj'
         self.repetition = 10
+
+        self.active = False
+        self.ringing = False
+        self.snooze = False
 
     def set_event(self, is_alarm, event):
 
@@ -28,6 +33,7 @@ class Event:
             self.raw['description'] = ''
 
         self.format_data()
+        self.set_alarm_repetition()
 
     def format_data(self):
 
@@ -64,6 +70,32 @@ class Event:
 
         if len(repetition_value) > 0:
             self.repetition = int(repetition_value)
+
+    def set_alarm_repetition(self):
+
+        if self.is_alarm is True:
+
+            repet_datetime = self.start_time
+            while repet_datetime < self.end_time:
+                self.alarms.append(repet_datetime)
+                repet_datetime += timedelta(minutes=self.repetition)
+
+    def clear_event(self):
+        self.raw = dict()
+
+        self.id = ''
+        self.is_alarm = False
+        self.title = ''
+        self.start_time = datetime.min
+        self.end_time = datetime.min
+        self.alarms = []
+        self.radio = 'nrj'
+        self.repetition = 10
+
+        self.active = False
+        self.ringing = False
+        self.snooze = False
+
 
 
 def extract_information_with_hashtag(full_text, hashtag):
