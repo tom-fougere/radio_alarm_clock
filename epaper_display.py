@@ -1,6 +1,5 @@
 from waveshare_epd import epd2in13
-from datetime import datetime, timedelta
-# from screens import Screen2in13
+from screens import Screen2in13
 
 class EPaper:
 
@@ -49,12 +48,8 @@ class EPaper:
         self.is_full_updated = False
 
     def set_new_screen(self, one_datetime, events):
-        # current_screen = Screen2in13((self.epd.height, self.epd.width))
-        # current_screen.set_params(one_datetime, events)
-        # my_image = current_screen.get_screen()
-        from PIL import ImageDraw, Image
-        image = Image.new('1', (self.epd.height, self.epd.width), 255)  # 255: clear the frame
-        draw = ImageDraw.Draw(image)
-        draw.rectangle([(50, 50), (100, 100)], outline=0)
-        self.epd.display(self.epd.getbuffer(draw))
+        current_screen = Screen2in13((self.epd.height, self.epd.width))
+        current_screen.set_params(one_datetime, events)
+        my_screen = current_screen.get_screen()
+        self.epd.display(self.epd.getbuffer(my_screen))
 
