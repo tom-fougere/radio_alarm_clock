@@ -25,7 +25,7 @@ class EPaper:
 
             # Display new screen
             self.set_new_screen(one_datetime, events)
-            self.epd.sleep()
+            self.sleep()
 
     def need_full_update(self, one_datetime, force_update=False):
         if one_datetime.hour > self.hour or (one_datetime.hour == 0 and self.hour == 23) or force_update == True:
@@ -52,4 +52,8 @@ class EPaper:
         current_screen.set_params(one_datetime, events)
         my_screen = current_screen.get_screen()
         self.epd.display(self.epd.getbuffer(my_screen))
+
+    def sleep(self):
+        print('Sleep')
+        self.epd.sleep()
 
