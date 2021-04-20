@@ -68,11 +68,12 @@ def test_update():
     assert display_test.minute == 6
 
     # One hour and 2 minutes later + force update
-    # one_datetime = now + timedelta(minutes=67)
-    # display_test.update(one_datetime, [], force_update=True)
-    #
-    # assert display_test.is_full_updated is True
-    # assert display_test.datetime == one_datetime
+    one_datetime = now + timedelta(minutes=67)
+    display_test.update(one_datetime, [], force_update=True)
+
+    assert display_test.is_full_updated is True
+    assert display_test.hour == 21
+    assert display_test.minute == 7
 
 if __name__ == '__main__':
     test_need_full_update()
