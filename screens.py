@@ -62,24 +62,18 @@ class Screen2in13:
         minute_font = ImageFont.truetype('/usr/share/fonts/truetype/roboto/Roboto-Light.ttf', 55)
 
         # Hours
-        hour_size = (32, 48)
-        if len(self.hour) == 2:
-            x_position = MAX_X - 2*hour_size[0] - MARGIN_BETWEEN_CHAR\
-                               - 2*hour_size[0]
-        else:
-            x_position = MAX_X - 1*hour_size[0] - MARGIN_BETWEEN_CHAR\
-                               - 2*hour_size[0]
+        x_position = MAX_X - get_font_size(self.screen, self.hour, hour_font)[0] - MARGIN_BETWEEN_CHAR\
+                           - get_font_size(self.screen, self.minute, minute_font)[0] - 3
         self.screen.text((x_position, TIME_Y), self.hour, font=hour_font, fill = 0)
 
         # Minutes
-        x_position = MAX_X - 2*hour_size[0]
+        x_position = MAX_X - get_font_size(self.screen, self.minute, minute_font)[0] - 3
         self.screen.text((x_position, TIME_Y), self.minute, font=minute_font, fill = 0)
 
     def draw_date(self):
 
         day_font = ImageFont.truetype('/usr/share/fonts/truetype/roboto/Roboto-Thin.ttf', 14)
         day_font_bold = ImageFont.truetype('/usr/share/fonts/truetype/roboto/Roboto-Bold.ttf', 14)
-
 
         # Week day
         x_position = MAX_X - get_font_size(self.screen, self.month, day_font)[0] - MARGIN_X\
