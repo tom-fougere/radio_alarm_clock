@@ -91,6 +91,7 @@ class Event:
         self.ringing = False
 
     def stop_alarm(self):
+        print('Stop Alarm !')
         self.active = False
 
     def set_alarm_repetition(self):
