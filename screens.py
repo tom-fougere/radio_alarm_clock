@@ -9,10 +9,12 @@ DAY_Y = 65 + TIME_Y
 MAX_X = 250
 MAX_Y = 122
 
-# DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-# MONTHS = ['JAN', 'FEV', 'MAR', 'AVR', 'MAI', 'JUI', 'JUL', 'AOU', 'SEP', 'OCT', 'NOV', 'DEC']
 DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+
+FONT_BOLD = '/usr/share/fonts/truetype/piboto/Piboto-Bold.ttf'
+FONT_THIN = '/usr/share/fonts/truetype/piboto/Piboto-Thin.ttf'
+FONT_LIGHT = '/usr/share/fonts/truetype/piboto/Piboto-Light.ttf'
 
 
 class Screen2in13:
@@ -58,8 +60,8 @@ class Screen2in13:
 
     def draw_hour(self):
 
-        hour_font = ImageFont.truetype('/usr/share/fonts/truetype/roboto/Roboto-Bold.ttf', 55)
-        minute_font = ImageFont.truetype('/usr/share/fonts/truetype/roboto/Roboto-Light.ttf', 55)
+        hour_font = ImageFont.truetype(FONT_BOLD, 55)
+        minute_font = ImageFont.truetype(FONT_LIGHT, 55)
 
         # Hours
         x_position = MAX_X - get_font_size(self.screen, self.hour, hour_font)[0] - MARGIN_BETWEEN_CHAR\
@@ -72,18 +74,18 @@ class Screen2in13:
 
     def draw_date(self):
 
-        day_font = ImageFont.truetype('/usr/share/fonts/truetype/roboto/Roboto-Thin.ttf', 14)
-        day_font_bold = ImageFont.truetype('/usr/share/fonts/truetype/roboto/Roboto-Bold.ttf', 14)
+        day_font = ImageFont.truetype(FONT_THIN, 14)
+        day_font_bold = ImageFont.truetype(FONT_BOLD, 14)
 
         # Week day
         x_position = MAX_X - get_font_size(self.screen, self.month, day_font)[0] - MARGIN_X\
-                           - get_font_size(self.screen, self.hour, day_font_bold)[0] - MARGIN_BETWEEN_CHAR\
+                           - get_font_size(self.screen, self.day_number, day_font_bold)[0] - MARGIN_BETWEEN_CHAR\
                            - get_font_size(self.screen, self.week_day, day_font)[0] - MARGIN_BETWEEN_CHAR
         self.screen.text((x_position, DAY_Y), self.week_day, font=day_font, fill = 0)
 
         # Day
         x_position = MAX_X - get_font_size(self.screen, self.month, day_font)[0] - MARGIN_X\
-                           - get_font_size(self.screen, self.hour, day_font_bold)[0] - MARGIN_BETWEEN_CHAR
+                           - get_font_size(self.screen, self.day_number, day_font_bold)[0] - MARGIN_BETWEEN_CHAR
         self.screen.text((x_position, DAY_Y), self.day_number, font=day_font_bold, fill = 0)
 
         # Month
@@ -111,7 +113,7 @@ class Screen2in13:
         nb_char = 25
         margin_calendar_icon = 3
         bmp_calendar_size = (24, 24)
-        event_font = ImageFont.truetype('/usr/share/fonts/truetype/roboto/Roboto-Thin.ttf', 13)
+        event_font = ImageFont.truetype(FONT_THIN, 13)
 
         # Today Event
         bmp_calendar_today = Image.open('icons/calendar_today.png')
