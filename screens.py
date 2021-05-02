@@ -42,9 +42,9 @@ class Screen2in13:
         self.week_day = DAYS[datetime.isoweekday() - 1]
         self.day_number = str(datetime.day)
         self.month = MONTHS[datetime.month - 1]
-        if len(events) > 0:
+        if events[0] is not None:
             self.event_today = events[0]['summary']
-        if len(events) > 1:
+        if events[1] is not None:
             self.event_tomorrow = events[1]['summary']
 
         # Build screen with saved parameters

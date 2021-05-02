@@ -20,20 +20,22 @@ class Event:
 
     def set_event(self, is_alarm, event):
 
-        self.id = event['id']
         self.is_alarm = is_alarm
         self.active = self.is_alarm
 
-        self.raw['start'] = event['start']['dateTime']
-        self.raw['end'] = event['end']['dateTime']
-        self.raw['summary'] = event['summary']
-        try:
-            self.raw['description'] = event['description']
-        except KeyError:
-            self.raw['description'] = ''
+        if event is not None:
+            self.id = event['id']
 
-        self.format_data()
-        self.set_alarm_repetition()
+            self.raw['start'] = event['start']['dateTime']
+            self.raw['end'] = event['end']['dateTime']
+            self.raw['summary'] = event['summary']
+            try:
+                self.raw['description'] = event['description']
+            except KeyError:
+                self.raw['description'] = ''
+
+            self.format_data()
+            self.set_alarm_repetition()
 
     def format_data(self):
 
