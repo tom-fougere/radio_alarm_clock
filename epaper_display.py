@@ -47,7 +47,7 @@ class EPaper:
         self.epd.init(self.epd.lut_partial_update)
         self.is_full_updated = False
 
-    def set_new_screen(self, one_datetime, events, is_wifi_on=False, is_alarm_on=True):
+    def set_new_screen(self, one_datetime, events, is_wifi_on=False, is_alarm_on=False):
         current_screen = Screen2in13((self.epd.height, self.epd.width))
         current_screen.set_params(one_datetime, events, is_wifi_on=is_wifi_on, is_alarm_on=is_alarm_on)
         my_screen = current_screen.get_screen()
