@@ -3,6 +3,12 @@ from epaper_display import *
 from datetime import datetime, timedelta
 
 display_test = EPaper()
+events = []
+events.append(None)
+events.append(None)
+
+def setup_function():
+    display_test.is_full_updated = False
 
 def test_need_full_update():
     now = datetime(2021, 4, 19, 20, 00, 00)
@@ -37,7 +43,7 @@ def test_update():
 
     # Few seconds later
     one_datetime = now + timedelta(seconds=5)
-    display_test.update(one_datetime, [])
+    display_test.update(one_datetime, events)
 
     assert display_test.is_full_updated is False
     assert display_test.hour == 20
@@ -45,7 +51,7 @@ def test_update():
 
     # One minute later
     one_datetime = now + timedelta(seconds=65)
-    display_test.update(one_datetime, [])
+    display_test.update(one_datetime, events)
 
     assert display_test.is_full_updated is False
     assert display_test.hour == 20
@@ -53,7 +59,7 @@ def test_update():
 
     # One hour later
     one_datetime = now + timedelta(minutes=65)
-    display_test.update(one_datetime, [])
+    display_test.update(one_datetime, events)
 
     assert display_test.is_full_updated is True
     assert display_test.hour == 21
@@ -61,7 +67,7 @@ def test_update():
 
     # One hour and one minute later
     one_datetime = now + timedelta(minutes=66)
-    display_test.update(one_datetime, [])
+    display_test.update(one_datetime, events)
 
     assert display_test.is_full_updated is False
     assert display_test.hour == 21
@@ -69,7 +75,7 @@ def test_update():
 
     # One hour and 2 minutes later + force update
     one_datetime = now + timedelta(minutes=67)
-    display_test.update(one_datetime, [], force_update=True)
+    display_test.update(one_datetime, events, force_update=True, is_alarm_on=True)
 
     assert display_test.is_full_updated is True
     assert display_test.hour == 21
