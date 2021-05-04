@@ -12,9 +12,9 @@ MAX_Y = 122
 DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
 
-FONT_BOLD = '/usr/share/fonts/truetype/piboto/Piboto-Bold.ttf'
-FONT_THIN = '/usr/share/fonts/truetype/piboto/Piboto-Thin.ttf'
-FONT_LIGHT = '/usr/share/fonts/truetype/piboto/Piboto-Light.ttf'
+FONT_BOLD = 'fonts/piboto/Piboto-Bold.ttf'
+FONT_THIN = 'fonts/piboto/Piboto-Thin.ttf'
+FONT_LIGHT = 'fonts/piboto/Piboto-Light.ttf'
 
 
 class Screen2in13:
