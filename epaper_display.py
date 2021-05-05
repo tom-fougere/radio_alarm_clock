@@ -76,17 +76,17 @@ class EPaper:
         """
         Set new display update as a full update
         """
+        logger.debug('Full update of e-paper')
         self.epd.init(self.epd.lut_full_update)
         self.is_full_updated = True
-        logger.debug('Full update of e-paper')
 
     def set_partial_update(self):
         """
         Set new display update as a partial update
         """
+        logger.debug('Partial update of e-paper')
         self.epd.init(self.epd.lut_partial_update)
         self.is_full_updated = False
-        logger.debug('Partial update of e-paper')
 
     def set_new_screen(self, one_datetime, events, is_wifi_on=False, is_alarm_on=False):
         """
