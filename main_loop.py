@@ -5,7 +5,12 @@ from events import Event
 from epaper_display import EPaper
 from gpio_button import Button
 from InternetCheck import InternetChecker
+import logging.config
 
+logging.config.fileConfig(fname='logging.conf', disable_existing_loggers=False)
+
+# Get the logger specified in the file
+logger = logging.getLogger("radioAlarmLogger")
 
 internetChecker = InternetChecker()
 myCalendar = AlarmCalendar()
@@ -20,19 +25,19 @@ lightButtonIntensity = Button(23)
 light_intensity = 0
 
 def stop_alarm_button(channel):
-    print('Stop alarm !')
+    logger.info('Button - Stop alarm !')
     myAlarm.stop_alarm()
 
 
 def snooze_alarm_button(channel):
-    print('Snooze alarm !')
+    logger.info('Button - Snooze alarm !')
     myAlarm.snooze()
 
 
 def change_light_intensity(channel):
     global light_intensity
     new_intensity = divmod(light_intensity + 1, 10)
-    print('Old intensity:,', str(light_intensity), ' - New intensity:', str(new_intensity))
+    logger.info('Button - Change light from intensity %s to %s !', light_intensity, new_intensity)
 
 
 if __name__ == '__main__':

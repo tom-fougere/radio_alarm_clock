@@ -1,8 +1,10 @@
 from calendarAPI import *
+import logging
 
 OFF_STRING = '#off'
 FORCE_STRING = '#force'
 
+logger = logging.getLogger(__name__)
 
 class AlarmCalendar:
 
@@ -16,11 +18,28 @@ class AlarmCalendar:
         self.google_service.init_calendar_service()
 
     def set_calendars(self, alarm_calendar, public_holiday_calendar, personal_calendar):
+        """
+        Set calendars to monitor
+
+        :param alarm_calendar: Specific calendar of alarms
+        :param public_holiday_calendar: Specific calendar of public holiday
+        :param personal_calendar: Personal calendar
+        """
         self.alarm_calendar = alarm_calendar
         self.public_holiday_calendar = public_holiday_calendar
         self.personal_calendar = personal_calendar
 
     def is_alarm_today(self, today_datetime, reset_hour=False):
+        """
+        Check in calendars if there is an alarm today
+        Search alarms in calendars after the selected datetime
+
+        :param today_datetime: Current datetime
+        :param reset_hour: If True, the hour is not taken into account
+        :return:
+            - is_alarm_today: boolean for alarm to the selected datetime
+            - alarm_event: alarm associated
+        """
 
         # Get the events from the three calendars
         events_alarm_calendar = self.google_service.get_events_from_day(self.alarm_calendar,
@@ -33,6 +52,10 @@ class AlarmCalendar:
         events_personal_calendar = self.google_service.get_events_from_day(self.personal_calendar,
                                                                            today_datetime)
 
+        logger.debug('Events from Alarm calendar (%s): %s', today_datetime, events_alarm_calendar)
+        logger.debug('Events from Public Holiday calendar (%s): %s', today_datetime, events_public_holiday_calendar)
+        logger.debug('Events from Personal calendar (%s): %s', today_datetime, events_personal_calendar)
+
         # Sort the events to get the one that should trigger a ringing
         is_alarm_today, alarm_event = get_highest_priority_event(events_alarm_calendar,
                                                                  events_public_holiday_calendar,
@@ -41,24 +64,20 @@ class AlarmCalendar:
         return is_alarm_today, alarm_event
 
     def is_alarm_tomorrow(self, today_datetime):
+        """
+        Check in calendars if there is an alarm the day of the selected datetime
+        Search alarms in calendars after the selected datetime
+
+        :param today_datetime: Current datetime
+        :param reset_hour: If True, the hour is not taken into account
+        :return:
+            - is_alarm_today: boolean for alarm to the selected datetime
+            - alarm_event: alarm associated
+        """
 
         tomorrow_datetime = today_datetime + datetime.timedelta(days=1)
 
-        # Get the events from the three calendars
-        events_alarm_calendar = self.google_service.get_events_from_day(self.alarm_calendar,
-                                                                        tomorrow_datetime,
-                                                                        reset_hour=True)
-
-        events_public_holiday_calendar = self.google_service.get_events_from_day(self.public_holiday_calendar,
-                                                                                 tomorrow_datetime)
-
-        events_personal_calendar = self.google_service.get_events_from_day(self.personal_calendar,
-                                                                           tomorrow_datetime)
-
-        # Sort the events to get the one that should trigger a ringing
-        is_alarm_tomorrow, alarm_event = get_highest_priority_event(events_alarm_calendar,
-                                                                    events_public_holiday_calendar,
-                                                                    events_personal_calendar)
+        is_alarm_tomorrow, alarm_event = self.is_alarm_today(tomorrow_datetime, reset_hour=True)
 
         return is_alarm_tomorrow, alarm_event
 
