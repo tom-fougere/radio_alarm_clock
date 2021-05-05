@@ -3,6 +3,7 @@ from urllib.error import URLError, HTTPError
 import time
 import socket
 
+from Logger import logger
 
 class InternetChecker:
     def __init__(self):
@@ -21,20 +22,23 @@ class InternetChecker:
             is_connected = self.check_connection_once()
             if is_connected:
                 nb_connection += 1
+            logger.info('Test n: %s/%s - Successful connection: %s/%s',
+                        i_test, self.number_of_tests, nb_connection, self.number_of_tests)
 
             # Sleep
             time.sleep(self.duration_check_connection/self.number_of_tests)
 
         if nb_connection == self.number_of_tests:
-            print("Internet Connected")
+            logger.info("Internet Connected")
             return True
         else:
-            print(str(self.number_of_tests - nb_connection), '/', str(nb_connection), 'connection errors')
+            logger.warning('Internet not connected: %s/%s connection errors !', self.number_of_tests - nb_connection)
             return False
 
     def check_connection_once(self):
         try:
             response = urlopen(self.url)
+            logger.debug('Try connexion once (response:%s)', response)
         except (HTTPError, URLError):
             connected = False
         else:
