@@ -1,6 +1,8 @@
 from waveshare_epd import epd2in13
 from screens import Screen2in13
-from Logger import logger
+import logging
+
+logger = logging.getLogger("radioAlarmLogger")
 
 class EPaper:
 
@@ -104,6 +106,6 @@ class EPaper:
         """
         Put the e-paper in sleep mode
         """
-        self.epd.sleep()
         logger.info('E-paper sleep')
+        self.epd.sleep()
 

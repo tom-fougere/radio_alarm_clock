@@ -1,9 +1,10 @@
 from calendarAPI import *
-from Logger import logger
+import logging
 
 OFF_STRING = '#off'
 FORCE_STRING = '#force'
 
+logger = logging.getLogger(__name__)
 
 class AlarmCalendar:
 

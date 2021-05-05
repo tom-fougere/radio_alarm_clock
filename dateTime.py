@@ -4,9 +4,9 @@ from socket import AF_INET, SOCK_DGRAM
 import socket
 import struct
 import time
+import logging
 
-from Logger import logger
-
+logger = logging.getLogger("radioAlarmLogger")
 
 SECOND_MARGIN = 1
 

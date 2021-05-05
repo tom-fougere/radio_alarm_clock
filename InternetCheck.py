@@ -2,8 +2,10 @@ from urllib.request import urlopen
 from urllib.error import URLError, HTTPError
 import time
 import socket
+import logging
 
-from Logger import logger
+logger = logging.getLogger("radioAlarmLogger")
+
 
 class InternetChecker:
     def __init__(self):
@@ -22,7 +24,7 @@ class InternetChecker:
             is_connected = self.check_connection_once()
             if is_connected:
                 nb_connection += 1
-            logger.info('Test n: %s/%s - Successful connection: %s/%s',
+            logger.info('Test %s/%s - Successful connection: %s/%s',
                         i_test, self.number_of_tests, nb_connection, self.number_of_tests)
 
             # Sleep
@@ -38,7 +40,7 @@ class InternetChecker:
     def check_connection_once(self):
         try:
             response = urlopen(self.url)
-            logger.debug('Try connexion once (response:%s)', response)
+            logger.debug('Try connexion once (response:%s)', response.url)
         except (HTTPError, URLError):
             connected = False
         else:

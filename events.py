@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta
 import re
 
-from Logger import logger
+import logging
+
+
+logger = logging.getLogger("radioAlarmLogger")
 
 
 class Event:
@@ -66,7 +69,7 @@ class Event:
         if len(text_repetition) > 0 and digits_search:
             self.set_repetition(digits_search.group(1))
         else:
-            logger.info("There is no #repetition of no digits")
+            logger.debug("There is no #repetition of no digits")
 
     def set_radio(self, radio_str):
 
@@ -87,7 +90,7 @@ class Event:
                     if current_datetime in self.alarms:
                         self.ringing = True
                         self.alarms.pop(0)  # Remove first alarm to avoid new alarm for the same datetime
-                        logger.info("Alarm must ring now !")
+                        logger.info("Alarm must ring now")
                     else:
                         self.ringing = False
             else:
