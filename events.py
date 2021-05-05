@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 import re
 
+from Logger import logger
+
 
 class Event:
     def __init__(self):
@@ -33,9 +35,12 @@ class Event:
                 self.raw['description'] = event['description']
             except KeyError:
                 self.raw['description'] = ''
+                logger.debug('No description field in event')
 
             self.format_data()
             self.set_alarm_repetition()
+        else:
+            logger.debug('No event')
 
     def format_data(self):
 
@@ -61,16 +66,18 @@ class Event:
         if len(text_repetition) > 0 and digits_search:
             self.set_repetition(digits_search.group(1))
         else:
-            print("There is no digits in #repetition")
+            logger.info("There is no #repetition of no digits")
 
     def set_radio(self, radio_str):
 
         if len(radio_str) > 0:
+            logger.info("Set radio from %s to %s", self.radio, radio_str)
             self.radio = radio_str
 
     def set_repetition(self, repetition_value):
 
         if len(repetition_value) > 0:
+            logger.info("Set number of repetition from %s to %s", self.repetition, repetition_value)
             self.repetition = int(repetition_value)
 
     def is_ringing(self, current_datetime):
@@ -80,6 +87,7 @@ class Event:
                     if current_datetime in self.alarms:
                         self.ringing = True
                         self.alarms.pop(0)  # Remove first alarm to avoid new alarm for the same datetime
+                        logger.info("Alarm must ring now !")
                     else:
                         self.ringing = False
             else:
@@ -90,10 +98,11 @@ class Event:
         return self.ringing
 
     def snooze(self):
+        logger.info('Snooze !')
         self.ringing = False
 
     def stop_alarm(self):
-        print('Stop Alarm !')
+        logger.info('Stop Alarm !')
         self.active = False
 
     def set_alarm_repetition(self):
@@ -106,6 +115,7 @@ class Event:
                 repet_datetime += timedelta(minutes=self.repetition)
 
     def clear_event(self):
+        logger.debug("Clear event")
         self.raw = dict()
 
         self.id = ''
