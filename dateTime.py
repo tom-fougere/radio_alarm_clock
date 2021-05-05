@@ -5,6 +5,9 @@ import socket
 import struct
 import time
 
+from Logger import logger
+
+
 SECOND_MARGIN = 1
 
 # NTP server
@@ -109,7 +112,10 @@ def get_internet_datetime(parameters=NTP_SERVER):
     t = struct.unpack("!12I", msg)[10]
     t -= parameters['time1970']
 
-    return datetime.datetime.strptime(time.ctime(t), "%a %b %d %H:%M:%S %Y")
+    internet_datetime = time.ctime(t)
+    logger.debug('Time from internet: %s', internet_datetime)
+
+    return datetime.datetime.strptime(internet_datetime, "%a %b %d %H:%M:%S %Y")
 
 
 class ReliableDate(CurrentDate):
@@ -123,22 +129,39 @@ class ReliableDate(CurrentDate):
         except OSError as e:
             self.ntp_date = None
             self.current_datetime = self.os_date.get_datetime()
-            print('ERROR: dateTime l126')
+            logger.warning('Impossible to get the datetime from NTP')
+
+        logger.debug('Use the NTP date ? %s', False if self.ntp_date is None else True)
 
         # Save the date of the init to check internet connection regularly
         self.save_datetime = self.current_datetime
         self.need_cycle_double_check = True
 
-    def update(self, check_internet_connection=False):
+    def update(self):
+        """
+        Update the reliable datetime with internet (NTP) or OS datetime
+        """
 
         self.os_date.update()
         try:
             self.ntp_date.update()
             self.current_datetime = self.ntp_date.get_datetime()
+            logger.info('Use of NTP datetime')
         except():
             self.current_datetime = self.os_date.get_datetime()
+            logger.info('Use of OS datetime')
 
     def is_consistent_datetime(self):
-        return abs((self.ntp_date.get_datetime() - self.os_date.get_datetime()).total_seconds()) < SECOND_MARGIN
+        """
+        Check consistency between internet datetime and OS datetime
+        The difference between the 2 must be less than one second
+
+        :return:
+            - is_consistent: boolean to describe consistency
+        """
+        is_consistent = abs((self.ntp_date.get_datetime() - self.os_date.get_datetime()).total_seconds()) < SECOND_MARGIN
+        logger.info('Check consistency between datetime (is_consistent = %s)', is_consistent)
+
+        return is_consistent
 
 
