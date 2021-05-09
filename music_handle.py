@@ -1,9 +1,9 @@
 # External packages
 import logging
-import subprocess
+import os
 
 # Personal pacjages
-from documents.rw_dict import read_dict_file
+from documents.rw_dict import *
 
 
 RADIO_URL_FILE = 'documents/radio_url.txt'
@@ -21,7 +21,7 @@ class Radio:
         """
         Turn on the radio
         """
-        subprocess.call(["mpg321", self.url])
+        os.system(' '.join(["mpg321", self.url, '&']))
         self.on = True
 
     def turn_off(self):
@@ -29,14 +29,8 @@ class Radio:
         Trun off the radio
         """
 
-        # Search job dedicated to mpg321
-        out = subprocess.Popen(["jobs"])
-        stdout, stderr = out.communicate()
-
-        job_id = stdout.split()[0]
-
-        # Kill job dedicated to mpg321
-        subprocess.call(["kill", "%" + job_id])
+        # Force mpg321 to stop
+        os.system(['pkill', 'mpg321'])
 
         self.on = False
 

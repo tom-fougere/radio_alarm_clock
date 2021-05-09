@@ -3,7 +3,9 @@ from music_handle import *
 
 
 my_radio = Radio()
-my_radio.set_radio_url('nrj')
+
+def setup_function():
+    my_radio.set_radio_url('nrj')
 
 def test_turn_on_off():
     assert my_radio.on is False
