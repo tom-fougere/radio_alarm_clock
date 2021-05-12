@@ -147,7 +147,7 @@ class ReliableDate(CurrentDate):
             self.ntp_date.update()
             self.current_datetime = self.ntp_date.get_datetime()
             logger.info('Use of NTP datetime')
-        except():
+        except:
             self.current_datetime = self.os_date.get_datetime()
             logger.info('Use of OS datetime')
 

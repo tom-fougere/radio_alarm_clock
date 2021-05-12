@@ -40,7 +40,7 @@ class EPaper:
 
             # Display new screen
             self.set_new_screen(one_datetime, events, is_wifi_on=is_wifi_on, is_alarm_on=is_alarm_on)
-            self.sleep()
+            # self.sleep()
 
     def need_full_update(self, one_datetime, force_update=False):
         """

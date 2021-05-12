@@ -23,8 +23,8 @@ myDisplay = EPaper()
 myAlarm = Event()
 myRadio = Radio()
 
-alarmButtonStop = Button(21)
-alarmButtonSnooze = Button(22)
+alarmButtonStop = Button(5)
+alarmButtonSnooze = Button(6)
 lightButtonIntensity = Button(23)
 
 light_intensity = 0

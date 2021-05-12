@@ -2,7 +2,7 @@
 import logging
 import os
 
-# Personal pacjages
+# Personal packages
 from documents.rw_dict import *
 
 
