@@ -30,7 +30,7 @@ class Radio:
         """
 
         # Force mpg321 to stop
-        os.system(['pkill', 'mpg321'])
+        os.system(' '.join(['pkill', 'mpg321']))
 
         self.on = False
 
