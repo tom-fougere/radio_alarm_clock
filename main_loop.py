@@ -1,3 +1,7 @@
+# External packages
+import logging.config
+
+# Personal packages
 from AlarmCalendar import AlarmCalendar
 from dateTime import ReliableDate
 from documents.rw_dict import *
@@ -5,7 +9,7 @@ from events import Event
 from epaper_display import EPaper
 from gpio_button import Button
 from InternetCheck import InternetChecker
-import logging.config
+from music_handle import Radio
 
 logging.config.fileConfig(fname='logging.conf', disable_existing_loggers=False)
 
@@ -17,6 +21,7 @@ myCalendar = AlarmCalendar()
 myDatetime = ReliableDate()
 myDisplay = EPaper()
 myAlarm = Event()
+myRadio = Radio()
 
 alarmButtonStop = Button(21)
 alarmButtonSnooze = Button(22)
@@ -27,11 +32,13 @@ light_intensity = 0
 def stop_alarm_button(channel):
     logger.info('Button - Stop alarm !')
     myAlarm.stop_alarm()
+    myRadio.turn_off()
 
 
 def snooze_alarm_button(channel):
     logger.info('Button - Snooze alarm !')
     myAlarm.snooze()
+    myRadio.turn_off()
 
 
 def change_light_intensity(channel):
@@ -71,6 +78,7 @@ if __name__ == '__main__':
 
         # Set event
         myAlarm.set_event(is_alarm_today, event_today)
+        myRadio.set_radio_url(myAlarm.radio)
 
         # Select the bell icon following the current datetime (change to tomorrow after the alarm is passed)
         if current_datetime <= myAlarm.end_time:
@@ -80,12 +88,14 @@ if __name__ == '__main__':
 
         # Start music in case of alarm triggered
         if myAlarm.is_ringing(current_datetime):
-            print('DRING')
+            logger.info('Start radio/music !')
             display_bell_icon = event_tomorrow
+            myRadio.turn_on()
 
         # Display datetime in the screen
         myDisplay.update(current_datetime, [event_today, event_tomorrow],
                          is_wifi_on=is_internet_ok, is_alarm_on=display_bell_icon)
+
         
 
 
