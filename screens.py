@@ -30,6 +30,8 @@ class Screen2in13:
         self.month = 'XXX'
         self.event_today = ''
         self.event_tomorrow = ''
+        self.event_today_time = ''
+        self.event_tomorrow_time = ''
         self.alarm = False
 
     def set_params(self, datetime, events, is_wifi_on=False, is_alarm_on=True):
@@ -44,8 +46,10 @@ class Screen2in13:
         self.month = MONTHS[datetime.month - 1]
         if events[0] is not None:
             self.event_today = events[0]['summary']
+            self.event_today_time = events[0]['start']['dateTime'][11:16]
         if events[1] is not None:
             self.event_tomorrow = events[1]['summary']
+            self.event_tomorrow_time = events[1]['start']['dateTime'][11:16]
 
         # Build screen with saved parameters
         self.build_screen()
@@ -110,26 +114,28 @@ class Screen2in13:
 
     def draw_events(self):
 
-        nb_char = 25
+        nb_char = 20
         margin_calendar_icon = 3
         bmp_calendar_size = (24, 24)
         event_font = ImageFont.truetype(FONT_THIN, 13)
 
         # Today Event
         bmp_calendar_today = Image.open('icons/calendar_today.png')
+        event_text = ' - '.join([self.event_today[:nb_char], self.event_today_time])
         self.image.paste(bmp_calendar_today, (MAX_X - bmp_calendar_size[0] - margin_calendar_icon,  MAX_Y - 2 * bmp_calendar_size[1]))
-        x_position = MAX_X - get_font_size(self.screen, self.event_today[:nb_char], event_font)[0]\
+        x_position = MAX_X - get_font_size(self.screen, event_text, event_font)[0]\
                            - bmp_calendar_size[0] - margin_calendar_icon
         y_position = MAX_Y - 2*bmp_calendar_size[1] + 3
-        self.screen.text((x_position, y_position), self.event_today[:nb_char], font=event_font, fill = 0)
+        self.screen.text((x_position, y_position), event_text, font=event_font, fill = 0)
 
         # Tomorrow Event
         bmp_calendar_tomorrow = Image.open('icons/calendar_tomorrow.png')
+        event_text = ' - '.join([self.event_tomorrow[:nb_char], self.event_tomorrow_time])
         self.image.paste(bmp_calendar_tomorrow, (MAX_X - bmp_calendar_size[0] - margin_calendar_icon, MAX_Y - bmp_calendar_size[1]))
-        x_position = MAX_X - get_font_size(self.screen, self.event_tomorrow[:nb_char], event_font)[0]\
+        x_position = MAX_X - get_font_size(self.screen, event_text, event_font)[0]\
                            - bmp_calendar_size[0] - margin_calendar_icon
         y_position = MAX_Y - bmp_calendar_size[1] + 3
-        self.screen.text((x_position, y_position), self.event_tomorrow[:nb_char], font=event_font, fill = 0)
+        self.screen.text((x_position, y_position), event_text, font=event_font, fill = 0)
 
     def get_screen(self):
             return self.image

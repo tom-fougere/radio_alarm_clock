@@ -81,8 +81,4 @@ def test_update():
     assert display_test.hour == 21
     assert display_test.minute == 7
 
-if __name__ == '__main__':
-    test_need_full_update()
-    test_need_new_screen()
-    test_update()
 
