@@ -38,7 +38,11 @@ def stop_alarm_button():
 def snooze_alarm_button():
     logger.info('Button - Snooze alarm !')
     myAlarm.snooze()
-    myRadio.turn_off()
+
+
+def start_music():
+    logger.info('Button - Start music !')
+    myRadio.turn_on()
 
 
 def change_light_intensity():
@@ -59,7 +63,7 @@ if __name__ == '__main__':
     is_internet_ok = internetChecker.is_connected()
 
     # Set button action
-    alarmButtonStop.set_action(stop_alarm_button)
+    alarmButtonStop.set_action(stop_alarm_button, start_music)
     alarmButtonSnooze.set_action(snooze_alarm_button)
     lightButtonIntensity.set_action(change_light_intensity)
 
@@ -78,7 +82,12 @@ if __name__ == '__main__':
 
         # Set event
         myAlarm.set_event(is_alarm_today, event_today)
-        myRadio.set_radio_url(myAlarm.radio)
+
+        # Set radio/music
+        if is_internet_ok is True:
+            myRadio.set_radio_url(myAlarm.radio)
+        else:
+            myRadio.set_radio_url('mp3')
 
         # Select the bell icon following the current datetime (change to tomorrow after the alarm is passed)
         if current_datetime <= myAlarm.end_time:
