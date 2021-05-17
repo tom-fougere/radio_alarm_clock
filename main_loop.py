@@ -38,6 +38,7 @@ def stop_alarm_button():
 def snooze_alarm_button():
     logger.info('Button - Snooze alarm !')
     myAlarm.snooze()
+    myRadio.turn_off()
 
 
 def start_music():
@@ -68,6 +69,7 @@ if __name__ == '__main__':
     lightButtonIntensity.set_action(change_light_intensity)
 
     while True:
+
         # Check internet connexion
         is_internet_ok = internetChecker.check_connection_once()
 
@@ -96,10 +98,10 @@ if __name__ == '__main__':
             display_bell_icon = is_alarm_tomorrow
 
         # Start music in case of alarm triggered
-        if myAlarm.is_ringing(current_datetime):
-            logger.info('Start radio/music !')
-            display_bell_icon = event_tomorrow
-            myRadio.turn_on()
+        if myAlarm.is_ringing(current_datetime) and myRadio.on is False:
+            logger.info('Start        radio / music !')
+        display_bell_icon = event_tomorrow
+        myRadio.turn_on()
 
         # Display datetime in the screen
         myDisplay.update(current_datetime, [event_today, event_tomorrow],
