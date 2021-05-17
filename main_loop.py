@@ -29,19 +29,19 @@ lightButtonIntensity = Button(23)
 
 light_intensity = 0
 
-def stop_alarm_button(channel):
+def stop_alarm_button():
     logger.info('Button - Stop alarm !')
     myAlarm.stop_alarm()
     myRadio.turn_off()
 
 
-def snooze_alarm_button(channel):
+def snooze_alarm_button():
     logger.info('Button - Snooze alarm !')
     myAlarm.snooze()
     myRadio.turn_off()
 
 
-def change_light_intensity(channel):
+def change_light_intensity():
     global light_intensity
     new_intensity = divmod(light_intensity + 1, 10)
     logger.info('Button - Change light from intensity %s to %s !', light_intensity, new_intensity)
