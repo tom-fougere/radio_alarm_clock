@@ -25,12 +25,12 @@ def test_alarm():
     date3 = datetime.datetime(2020, 3, 26)
     is_alarm3, event3 = myCalendar.is_alarm_today(date3)
     assert is_alarm3 is True
-    assert event3['summary'] == '[FORCE] Reveil 2'
+    assert event3['summary'] == '#force Reveil 2'
 
     date4 = datetime.datetime(2020, 3, 27)
     is_alarm4, event4 = myCalendar.is_alarm_today(date4)
     assert is_alarm4 is False
-    assert event4['summary'] == '[OFF] congé 1'
+    assert event4['summary'] == '#off congé 1'
 
     date5 = datetime.datetime(2020, 3, 28)
     is_alarm5, event5 = myCalendar.is_alarm_today(date5)
@@ -45,9 +45,9 @@ def test_alarm():
     date7 = datetime.datetime(2020, 4, 2)
     is_alarm7, event7 = myCalendar.is_alarm_today(date7)
     assert is_alarm7 is True
-    assert event7['summary'] == '[FORCE] Reveil 3'
+    assert event7['summary'] == '#FORCE Reveil 3'
 
     date8 = datetime.datetime(2020, 4, 3)
     is_alarm8, event8 = myCalendar.is_alarm_today(date8)
     assert is_alarm8 is False
-    assert event8['summary'] == '[OFF] Congé 4'
+    assert event8['summary'] == '#OFF Congé 3'
