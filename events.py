@@ -20,13 +20,12 @@ class Event:
         self.radio = 'nrj'
         self.repetition = 10
 
-        self.active = False
+        self.active = True
         self.ringing = False
 
     def set_event(self, is_alarm, event):
 
         self.is_alarm = is_alarm
-        self.active = self.is_alarm
 
         if event is not None:
             self.id = event['id']
@@ -87,7 +86,7 @@ class Event:
         if self.start_time <= current_datetime <= self.end_time:
             if self.active is True:
                 if self.ringing is False:
-                    if current_datetime in self.alarms:
+                    if current_datetime.replace(second=0, microsecond=0) in self.alarms:
                         self.ringing = True
                         self.alarms.pop(0)  # Remove first alarm to avoid new alarm for the same datetime
                         logger.info("Alarm must ring now")
@@ -111,6 +110,7 @@ class Event:
     def set_alarm_repetition(self):
 
         if self.is_alarm is True:
+            self.alarms = []  # Reset alarms
 
             repet_datetime = self.start_time
             while repet_datetime < self.end_time:
@@ -130,7 +130,7 @@ class Event:
         self.radio = 'nrj'
         self.repetition = 10
 
-        self.active = False
+        self.active = True
         self.ringing = False
 
 
