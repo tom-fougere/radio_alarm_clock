@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger("radioAlarmLogger")
 
 
-class Event:
+class RadioEvent:
     def __init__(self):
         self.raw = dict()
 
@@ -59,10 +59,10 @@ class Event:
         self.end_time = datetime.strptime(self.raw['end'], '%Y-%m-%dT%H:%M:%S%z').replace(tzinfo=None)
 
         # Set radio
-        self.set_radio(extract_information_with_hashtag(self.raw['description'] + '#', "#radio"))
+        self.set_radio(extract_information_with_hashtag(self.raw['description'], "#radio"))
 
         # Set repetition: Extract the digit of the repetition text
-        text_repetition = extract_information_with_hashtag(self.raw['description'] + '#', "#repetition")
+        text_repetition = extract_information_with_hashtag(self.raw['description'], "#repetition")
         digits_pattern = "([0-9]{1,2})"
         digits_search = re.search(digits_pattern, text_repetition)
         if len(text_repetition) > 0 and digits_search:
@@ -134,6 +134,60 @@ class Event:
         self.ringing = False
 
 
+class CalendarEvent:
+    def __init__(self, calendar_item, calendar_name):
+
+        self.calendar_name = calendar_name
+
+        if len(calendar_item) == 0:
+            self.kind = 'None'  # 'None', 'Alarm', 'FullDay'
+        else:
+            self.id = get_value_from_dict(calendar_item, 'id')
+            self.description = get_value_from_dict(calendar_item, 'Summary', '')
+
+            if 'datetime' in calendar_item['start']:
+                self.kind = 'Alarm'
+                self.start = calendar_item['start']['datetime']
+                self.end = calendar_item['start']['datetime']
+            elif 'date' in calendar_item['start']:
+                self.kind = 'FullDay'
+                self.start = calendar_item['start']['date']
+                self.end = calendar_item['start']['date']
+
+
+def convert_google_events_to_calendar_events(google_events):
+    """
+    Convert google events into calendar events
+    :param google_events: google events, format of google calendar API event
+    :return:
+        - list_events: List of calendarEvent
+    """
+
+    list_events = []
+    for current_event in google_events['items']:
+        my_calendar_event = CalendarEvent(current_event, google_events['summary'])
+        list_events.append(my_calendar_event)
+
+    return list_events
+
+
+def get_value_from_dict(item_dict, wanted_field, default_value=''):
+    """
+    Get the value from a dictionary selecting the field. A default value is set if the field don't exist
+    :param item_dict: dictionary to watch, dict
+    :param wanted_field: field to search in the dictionary, string
+    :param default_value: default value if the wanted field don't exist
+    :return:
+        - value: value of the dictionary with the wanted field
+    """
+
+    value = default_value
+    if wanted_field in item_dict:
+        value = item_dict[wanted_field]
+
+    return value
+
+
 def extract_information_with_hashtag(full_text, hashtag):
     """
     Extract text after a defined hashtag
@@ -142,6 +196,9 @@ def extract_information_with_hashtag(full_text, hashtag):
     :return:
         - information: Information after a hashtag
     """
+
+    # Add # at the end
+    full_text = ''.join([full_text, '#'])
 
     # Search hashtag key
     index_defined_hashtag = full_text.find(hashtag)
