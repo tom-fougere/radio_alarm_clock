@@ -1,4 +1,5 @@
 from calendarAPI import *
+from events import convert_google_events_to_calendar_events
 import logging
 
 OFF_STRING = '#off'
@@ -146,4 +147,70 @@ def get_highest_priority_event(events_alarm_calendar, events_public_holiday_cale
         alarm_event = public_holiday_event
 
     return is_alarm_today, alarm_event
+
+def sort_events(events_alarm_calendar, events_public_holiday_calendar, events_personal_calendar):
+    """
+    Sort events from 3 google calendars (alarm, public holiday and personal)
+    order: #force, #off, public holiday, alarm, personal
+    :param events_alarm_calendar: List of Events from the alarm calendar, Google service "Event"
+    :param events_public_holiday_calendar: List of Events from the public holiday calendar, Google service "Event"
+    :param events_personal_calendar: List of Events from the personal calendar, Google service "Event"
+    :return:
+        - list of sorted CalendarEvent
+    """
+
+    alarm_calendar_name = 'Alarm'
+    public_holiday_calendar_name = 'Public Holiday'
+    personal_calendar_name = 'Personal'
+
+    events_alarm = convert_google_events_to_calendar_events(events_alarm_calendar, name=alarm_calendar_name)
+    events_public_holiday = convert_google_events_to_calendar_events(events_public_holiday_calendar, name=public_holiday_calendar_name)
+    events_personal = convert_google_events_to_calendar_events(events_personal_calendar, name=personal_calendar_name)
+
+    full_list = events_alarm + events_public_holiday + events_personal
+    sorted_events = []
+
+    priority = 0
+    index = 0
+    while len(full_list) > 0:
+        event = full_list[index]
+
+        if priority == 0:
+            if event.title.lower().find(FORCE_STRING)>=0:  # FORCE
+                sorted_events.append(event)
+                full_list.pop(index)
+            else:
+                index += 1
+        if priority == 1:
+            if event.title.lower().find(OFF_STRING) >= 0:  # OFF
+                sorted_events.append(event)
+                full_list.pop(index)
+            else:
+                index += 1
+        if priority == 2:
+            if event.name == public_holiday_calendar_name:
+                sorted_events.append(event)
+                full_list.pop(index)
+            else:
+                index += 1
+        if priority == 3:
+            if event.name == alarm_calendar_name:
+                sorted_events.append(event)
+                full_list.pop(index)
+            else:
+                index += 1
+        if priority == 4:
+            if event.name == personal_calendar_name:
+                sorted_events.append(event)
+                full_list.pop(index)
+            else:
+                index += 1
+
+        if index >= len(full_list):
+            priority +=1
+            index = 0
+
+    return sorted_events
+
+
 
