@@ -9,7 +9,7 @@ logger = logging.getLogger("radioAlarmLogger")
 
 class RadioEvent:
     def __init__(self):
-        self.raw = dict()
+        self.raw = None
 
         self.id = ''
         self.is_alarm = False
@@ -26,43 +26,28 @@ class RadioEvent:
     def set_event(self, is_alarm, event):
 
         self.is_alarm = is_alarm
+        self.raw = event
 
-        if event is not None:
-            self.id = event['id']
-
-            self.raw['start'] = event['start']['dateTime']
-            self.raw['end'] = event['end']['dateTime']
-            self.raw['summary'] = event['summary']
-            try:
-                self.raw['description'] = event['description']
-            except KeyError:
-                self.raw['description'] = ''
-                logger.debug('No description field in event')
-
-            self.format_data()
-            self.set_alarm_repetition()
-        else:
-            logger.debug('No event')
+        self.format_data()
+        self.set_alarm_repetition()
 
     def format_data(self):
 
-        # Set the title as the summary of the event removing the hashtag key
-        hashtag_pattern = r"^(#[a-zA-Z]+) ([a-zA-Z\w ]+)"
-        hashtag_search = re.search(hashtag_pattern, self.raw['summary'])
-        if hashtag_search:
-            self.title = hashtag_search.group(2)
-        else:
-            self.title = self.raw['summary']
+        self.title = self.raw.title
 
         # Set the start/end time as datetime (Remove useless timezone)
-        self.start_time = datetime.strptime(self.raw['start'], '%Y-%m-%dT%H:%M:%S%z').replace(tzinfo=None)
-        self.end_time = datetime.strptime(self.raw['end'], '%Y-%m-%dT%H:%M:%S%z').replace(tzinfo=None)
+        if self.raw.kind == 'Hour':
+            self.start_time = datetime.strptime(self.raw.start, '%Y-%m-%dT%H:%M:%S%z').replace(tzinfo=None)
+            self.end_time = datetime.strptime(self.raw.end, '%Y-%m-%dT%H:%M:%S%z').replace(tzinfo=None)
+        else:
+            self.start_time = datetime.strptime(self.raw.start, '%Y-%m-%d').replace(tzinfo=None)
+            self.end_time = datetime.strptime(self.raw.end, '%Y-%m-%d').replace(tzinfo=None)
 
         # Set radio
-        self.set_radio(extract_information_with_hashtag(self.raw['description'], "#radio"))
+        self.set_radio(extract_information_with_hashtag(self.raw.description, "#radio"))
 
         # Set repetition: Extract the digit of the repetition text
-        text_repetition = extract_information_with_hashtag(self.raw['description'], "#repetition")
+        text_repetition = extract_information_with_hashtag(self.raw.description, "#repetition")
         digits_pattern = "([0-9]{1,2})"
         digits_search = re.search(digits_pattern, text_repetition)
         if len(text_repetition) > 0 and digits_search:
@@ -119,7 +104,7 @@ class RadioEvent:
 
     def clear_event(self):
         logger.debug("Clear event")
-        self.raw = dict()
+        self.raw = None
 
         self.id = ''
         self.is_alarm = False

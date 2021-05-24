@@ -23,10 +23,10 @@ def test_set_radio_events():
     one_date = datetime.datetime(2020, 3, 30)
     is_alarm, events = myCalendar.is_alarm_today(one_date)
 
-    my_radio_event.set_event(is_alarm, events)
+    my_radio_event.set_event(is_alarm[0], events[0])
 
     assert my_radio_event.is_alarm is True
-    assert my_radio_event.title == 'essai1'
+    assert my_radio_event.title == '#force essai1'
     assert my_radio_event.start_time == datetime.datetime(2020, 3, 30, hour=9, minute=30)
     assert my_radio_event.end_time == datetime.datetime(2020, 3, 30, hour=10, minute=30)
     assert my_radio_event.radio == 'nrj'  # default value
@@ -36,7 +36,7 @@ def test_set_radio_events():
     one_date = datetime.datetime(2020, 3, 31)
     is_alarm, events = myCalendar.is_alarm_today(one_date)
 
-    my_radio_event.set_event(is_alarm, events)
+    my_radio_event.set_event(is_alarm[0], events[0])
 
     assert my_radio_event.is_alarm is True
     assert my_radio_event.title == 'essai2'
@@ -49,7 +49,7 @@ def test_set_radio_events():
     one_date = datetime.datetime(2020, 4, 1)
     is_alarm, events = myCalendar.is_alarm_today(one_date)
 
-    my_radio_event.set_event(is_alarm, events)
+    my_radio_event.set_event(is_alarm[0], events[0])
 
     assert my_radio_event.is_alarm is True
     assert my_radio_event.title == 'essai3'
@@ -59,13 +59,27 @@ def test_set_radio_events():
     assert my_radio_event.repetition == 15
 
 
+def test_set_no_event():
+
+    # One day
+    one_date = datetime.datetime(2020, 3, 24)
+    is_alarm, events = myCalendar.is_alarm_today(one_date)
+
+    assert my_radio_event.is_alarm is False
+    assert my_radio_event.title == ''
+    assert my_radio_event.start_time == datetime.datetime(1, 1, 1, hour=00, minute=00)
+    assert my_radio_event.end_time == datetime.datetime(1, 1, 1, hour=00, minute=00)
+    assert my_radio_event.radio == 'nrj'
+    assert my_radio_event.repetition == 10
+
+
 def test_list_of_alarms():
 
     # First day
     one_date = datetime.datetime(2020, 3, 30)
     is_alarm, events = myCalendar.is_alarm_today(one_date)
 
-    my_radio_event.set_event(is_alarm, events)
+    my_radio_event.set_event(is_alarm[0], events[0])
 
     alarms = [datetime.datetime(2020, 3, 30, hour=9, minute=30),
               datetime.datetime(2020, 3, 30, hour=9, minute=30) + datetime.timedelta(minutes=10),
@@ -85,7 +99,7 @@ def test_start_stop_ringing():
     one_date = datetime.datetime(2020, 3, 30, hour=9, minute=20, second=0)
     is_alarm, events = myCalendar.is_alarm_today(one_date, reset_hour=True)
 
-    my_radio_event.set_event(is_alarm, events)
+    my_radio_event.set_event(is_alarm[0], events[0])
 
     # Before event
     alarm_is_ringing = my_radio_event.is_ringing(one_date)
@@ -113,7 +127,7 @@ def test_end_of_datetime_range():
     one_date = datetime.datetime(2020, 3, 30, hour=9, minute=20, second=0)
     is_alarm, events = myCalendar.is_alarm_today(one_date, reset_hour=True)
 
-    my_radio_event.set_event(is_alarm, events)
+    my_radio_event.set_event(is_alarm[0], events[0])
 
     # At the time of the event
     one_date = datetime.datetime(2020, 3, 30, hour=9, minute=30, second=0)
@@ -137,7 +151,7 @@ def test_snooze_ringing():
     one_date = datetime.datetime(2020, 3, 30, hour=9, minute=20, second=0)
     is_alarm, events = myCalendar.is_alarm_today(one_date, reset_hour=True)
 
-    my_radio_event.set_event(is_alarm, events)
+    my_radio_event.set_event(is_alarm[0], events[0])
 
     # At the time of the event
     one_date = datetime.datetime(2020, 3, 30, hour=9, minute=30, second=0)

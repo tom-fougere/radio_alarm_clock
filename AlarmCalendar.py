@@ -53,16 +53,21 @@ class AlarmCalendar:
         events_personal_calendar = self.google_service.get_events_from_day(self.personal_calendar,
                                                                            today_datetime)
 
-        logger.debug('Events from Alarm calendar (%s): %s', today_datetime, events_alarm_calendar)
-        logger.debug('Events from Public Holiday calendar (%s): %s', today_datetime, events_public_holiday_calendar)
-        logger.debug('Events from Personal calendar (%s): %s', today_datetime, events_personal_calendar)
+        # logger.debug('Events from Alarm calendar (%s): %s', today_datetime, events_alarm_calendar)
+        # logger.debug('Events from Public Holiday calendar (%s): %s', today_datetime, events_public_holiday_calendar)
+        # logger.debug('Events from Personal calendar (%s): %s', today_datetime, events_personal_calendar)
 
-        # Sort the events to get the one that should trigger a ringing
-        is_alarm_today, alarm_event = get_highest_priority_event(events_alarm_calendar,
-                                                                 events_public_holiday_calendar,
-                                                                 events_personal_calendar)
+        sorted_events = sort_events(events_alarm_calendar, events_public_holiday_calendar, events_personal_calendar)
+        logger.debug('Sorted Events from Google calendars (%s): %s', today_datetime, sorted_events)
 
-        return is_alarm_today, alarm_event
+        is_alarm_today = []
+        for event in sorted_events:
+            if event.name == 'Alarm':
+                is_alarm_today.append(True)
+            else:
+                is_alarm_today.append(False)
+
+        return is_alarm_today, sorted_events
 
     def is_alarm_tomorrow(self, today_datetime):
         """
