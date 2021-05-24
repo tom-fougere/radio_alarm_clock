@@ -34,7 +34,7 @@ class Screen2in13:
         self.event_tomorrow_time = ''
         self.alarm = False
 
-    def set_params(self, datetime, events, is_wifi_on=False, is_alarm_on=True):
+    def set_params(self, datetime, event_today, event_tomorrow, is_wifi_on=False, is_alarm_on=True):
 
         # Set parameters
         self.wifi = is_wifi_on

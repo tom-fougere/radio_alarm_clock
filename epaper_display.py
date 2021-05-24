@@ -14,14 +14,15 @@ class EPaper:
         self.hour = 0
         self.minute = 0
 
-    def update(self, one_datetime, events, is_wifi_on=False, is_alarm_on=True, force_update=False):
+    def update(self, one_datetime, event_today, event_tomorrow, is_wifi_on=False, is_alarm_on=True, force_update=False):
         """
         Update the e-paper (following the datetime)
         There is a partial update at each minute
         There is a full update at each hour
 
         :param one_datetime: datetime (to check if update is needed), datetime
-        :param events: events to display, list of 2 events
+        :param event_today: today event to display, Calendar event
+        :param event_tomorrow: tomorrow event to display, Calendar event
         :param is_wifi_on: True if wifi is connected (for wifi-icon display)
         :param is_alarm_on: True if alarm is scheduled (for bell-icon display)
         :param force_update: True to force a full update of the screen
@@ -39,7 +40,7 @@ class EPaper:
                 self.set_partial_update()
 
             # Display new screen
-            self.set_new_screen(one_datetime, events, is_wifi_on=is_wifi_on, is_alarm_on=is_alarm_on)
+            self.set_new_screen(one_datetime, event_today, event_tomorrow, is_wifi_on=is_wifi_on, is_alarm_on=is_alarm_on)
             # self.sleep()
 
     def need_full_update(self, one_datetime, force_update=False):
@@ -88,17 +89,18 @@ class EPaper:
         self.epd.init(self.epd.lut_partial_update)
         self.is_full_updated = False
 
-    def set_new_screen(self, one_datetime, events, is_wifi_on=False, is_alarm_on=False):
+    def set_new_screen(self, one_datetime, event_today, event_tomorrow, is_wifi_on=False, is_alarm_on=False):
         """
         Define the new screen to display
 
         :param one_datetime: datetime to display, datetime
-        :param events: events to display, list of 2 events
+        :param event_today: today event to display, Calendar event
+        :param event_tomorrow: tomorrow event to display, Calendar event
         :param is_wifi_on: True if wifi is connected (for wifi-icon display)
         :param is_alarm_on: True if alarm is scheduled (for bell-icon display)
         """
         current_screen = Screen2in13((self.epd.height, self.epd.width))
-        current_screen.set_params(one_datetime, events, is_wifi_on=is_wifi_on, is_alarm_on=is_alarm_on)
+        current_screen.set_params(one_datetime, event_today, event_tomorrow, is_wifi_on=is_wifi_on, is_alarm_on=is_alarm_on)
         my_screen = current_screen.get_screen()
         self.epd.display(self.epd.getbuffer(my_screen))
 

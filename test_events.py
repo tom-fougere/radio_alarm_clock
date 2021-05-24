@@ -364,6 +364,18 @@ def test_convert_google_events_to_calendar_events_is_alarm():
     assert calendar_events[0].kind == 'Hour'
 
 
+def test_convert_google_events_to_calendar_events_no_event():
+    one_date = datetime.datetime(2020, 4, 5, hour=9, minute=20, second=0)
+
+    google_service = GoogleCalendarAPI()
+    google_service.init_calendar_service()
+    google_events = google_service.get_events_from_day(my_calendars['Reveil'], one_date)
+
+    calendar_events = convert_google_events_to_calendar_events(google_events, name='name')
+
+    assert len(calendar_events) == 0
+
+
 #################################################
 # Tests on convert_google_events_to_calendar_events
 #################################################
