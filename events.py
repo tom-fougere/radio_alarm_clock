@@ -135,37 +135,53 @@ class RadioEvent:
 
 
 class CalendarEvent:
-    def __init__(self, calendar_item, calendar_name):
+    def __init__(self, calendar_item, calendar_name, name):
 
         self.calendar_name = calendar_name
+        self.name = name
 
         if len(calendar_item) == 0:
-            self.kind = 'None'  # 'None', 'Alarm', 'FullDay'
+            self.kind = 'None'  # 'None', 'Hour', 'Day'
+            self.is_alarm = False
         else:
             self.id = get_value_from_dict(calendar_item, 'id')
-            self.description = get_value_from_dict(calendar_item, 'Summary', '')
+            self.title = get_value_from_dict(calendar_item, 'summary', '')
+            self.description = get_value_from_dict(calendar_item, 'description', '')
 
-            if 'datetime' in calendar_item['start']:
-                self.kind = 'Alarm'
-                self.start = calendar_item['start']['datetime']
-                self.end = calendar_item['start']['datetime']
+            if 'dateTime' in calendar_item['start']:
+                self.kind = 'Hour'
+                self.start = calendar_item['start']['dateTime']
+                self.end = calendar_item['end']['dateTime']
             elif 'date' in calendar_item['start']:
-                self.kind = 'FullDay'
+                self.kind = 'Day'
                 self.start = calendar_item['start']['date']
-                self.end = calendar_item['start']['date']
+                self.end = calendar_item['end']['date']
+
+    def __eq__(self, other):
+        if isinstance(other, CalendarEvent):
+            return self.calendar_name == other.calendar_name and\
+                   self.kind == other.kind and\
+                   self.name == other.name and\
+                   self.id == other.id and\
+                   self.title == other.title and\
+                   self.description == other.description and\
+                   self.start == other.start and\
+                   self.end == other.end
+        return False
 
 
-def convert_google_events_to_calendar_events(google_events):
+def convert_google_events_to_calendar_events(google_events, name):
     """
     Convert google events into calendar events
     :param google_events: google events, format of google calendar API event
+    :param name: Chosen name for the calendarS, String
     :return:
         - list_events: List of calendarEvent
     """
 
     list_events = []
     for current_event in google_events['items']:
-        my_calendar_event = CalendarEvent(current_event, google_events['summary'])
+        my_calendar_event = CalendarEvent(current_event, google_events['summary'], name=name)
         list_events.append(my_calendar_event)
 
     return list_events

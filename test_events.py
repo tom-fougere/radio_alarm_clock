@@ -172,38 +172,44 @@ def test_no_calendar_event():
     google_event_dict = dict()
 
     # No event
-    calendar_event = CalendarEvent(google_event_dict, 'test')
+    calendar_event = CalendarEvent(google_event_dict, calendar_name='test', name='name')
 
     assert calendar_event.kind == 'None'
     assert calendar_event.calendar_name == 'test'
+    assert calendar_event.name == 'name'
 
     count_field = 0
-    for field in ['start', 'end', 'description', 'id']:
+    for field in ['start', 'end', 'title', 'description', 'id']:
         if hasattr(calendar_event, field):
             count_field += 1
     assert count_field == 0
 
-def test_calendar_event_alarm():
+def test_calendar_event_hour():
 
     google_event_dict = dict()
     google_event_dict['id'] = '0123456789'
     google_event_dict['summary'] = 'my summary'
+    google_event_dict['description'] = 'my description'
     google_event_dict['start'] = dict()
-    google_event_dict['start']['datetime'] = 'my start'
+    google_event_dict['start']['dateTime'] = 'my start'
     google_event_dict['end'] = dict()
-    google_event_dict['end']['datetime'] = 'my end'
+    google_event_dict['end']['dateTime'] = 'my end'
 
-    # No event
-    calendar_event = CalendarEvent(google_event_dict, 'test')
+    calendar_event = CalendarEvent(google_event_dict, 'test', name='name')
 
-    assert calendar_event.kind == 'Alarm'
+    assert calendar_event.kind == 'Hour'
     assert calendar_event.calendar_name == 'test'
+    assert calendar_event.name == 'name'
+    assert calendar_event.title == 'my summary'
+    assert calendar_event.description == 'my description'
+    assert calendar_event.start == 'my start'
+    assert calendar_event.end == 'my end'
 
     count_field = 0
-    for field in ['start', 'end', 'description', 'id']:
+    for field in ['start', 'end', 'title', 'description', 'id']:
         if hasattr(calendar_event, field):
             count_field += 1
-    assert count_field == 4
+    assert count_field == 5
 
 def test_calendar_event_fullday():
 
@@ -215,17 +221,44 @@ def test_calendar_event_fullday():
     google_event_dict['end'] = dict()
     google_event_dict['end']['date'] = 'my end'
 
-    # No event
-    calendar_event = CalendarEvent(google_event_dict, 'test')
+    calendar_event = CalendarEvent(google_event_dict, 'test', name='name')
 
-    assert calendar_event.kind == 'FullDay'
+    assert calendar_event.kind == 'Day'
     assert calendar_event.calendar_name == 'test'
+    assert calendar_event.name == 'name'
 
     count_field = 0
-    for field in ['start', 'end', 'description', 'id']:
+    for field in ['start', 'end', 'title', 'description', 'id']:
         if hasattr(calendar_event, field):
             count_field += 1
-    assert count_field == 4
+    assert count_field == 5
+
+def test_calendar_event_is_same():
+
+    google_event_dict = dict()
+    google_event_dict['id'] = '0123456789'
+    google_event_dict['summary'] = 'my summary'
+    google_event_dict['start'] = dict()
+    google_event_dict['start']['date'] = 'my start'
+    google_event_dict['end'] = dict()
+    google_event_dict['end']['date'] = 'my end'
+
+    calendar_event1 = CalendarEvent(google_event_dict, 'test', name='name')
+    calendar_event2 = CalendarEvent(google_event_dict, 'test', name='name')
+
+    assert calendar_event1 == calendar_event2
+
+    google_event_dict = dict()
+    google_event_dict['id'] = '0123456789'
+    google_event_dict['summary'] = 'my summary'
+    google_event_dict['start'] = dict()
+    google_event_dict['start']['date'] = 'my new start'
+    google_event_dict['end'] = dict()
+    google_event_dict['end']['date'] = 'my end'
+
+    calendar_event3 = CalendarEvent(google_event_dict, 'test', name='name')
+
+    assert calendar_event2 != calendar_event3
 
 
 #################################################
@@ -280,11 +313,60 @@ def test_get_value_from_dict():
 #################################################
 def test_convert_google_events_to_calendar_events():
 
-    one_date = datetime.datetime(2020, 3, 30, hour=9, minute=20, second=0)
-    is_alarm, events = myCalendar.is_alarm_today(one_date, reset_hour=True)
-    self.google_service.get_events_from_day(self.personal_calendar,
-                                            today_datetime)
+    one_date = datetime.datetime(2020, 4, 3, hour=9, minute=20, second=0)
 
-    calendar_events = convert_google_events_to_calendar_events(events)
+    google_service = GoogleCalendarAPI()
+    google_service.init_calendar_service()
+    google_events = google_service.get_events_from_day(my_calendars['Reveil'], one_date)
 
+    calendar_events = convert_google_events_to_calendar_events(google_events, name='name')
+
+    assert calendar_events[0].calendar_name == 'Réveil'
+    assert calendar_events[0].title == 'Reveil 4'
+    assert calendar_events[0].description == '#radio nrj\n#repetition 5'
+    assert calendar_events[0].start == '2020-04-03T10:00:00+02:00'
+    assert calendar_events[0].end == '2020-04-03T10:30:00+02:00'
+    assert calendar_events[0].id == '6kfnrm8phlcil6sha9t07rr3uh'
+    assert calendar_events[0].name == 'name'
+    assert calendar_events[0].kind == 'Hour'
+
+def test_convert_google_events_to_calendar_events_is_alarm():
+
+    one_date = datetime.datetime(2020, 4, 3, hour=9, minute=20, second=0)
+
+    google_service = GoogleCalendarAPI()
+    google_service.init_calendar_service()
+    google_events = google_service.get_events_from_day(my_calendars['Reveil'], one_date)
+
+    calendar_events = convert_google_events_to_calendar_events(google_events, name='name')
+
+    assert calendar_events[0].calendar_name == 'Réveil'
+    assert calendar_events[0].title == 'Reveil 4'
+    assert calendar_events[0].description == '#radio nrj\n#repetition 5'
+    assert calendar_events[0].start == '2020-04-03T10:00:00+02:00'
+    assert calendar_events[0].end == '2020-04-03T10:30:00+02:00'
+    assert calendar_events[0].id == '6kfnrm8phlcil6sha9t07rr3uh'
+    assert calendar_events[0].name == 'name'
+    assert calendar_events[0].kind == 'Hour'
+
+
+#################################################
+# Tests on convert_google_events_to_calendar_events
+#################################################
+def test_sort_events():
+
+    one_date = datetime.datetime(2020, 4, 4, hour=0, minute=20, second=0)
+
+    google_service = GoogleCalendarAPI()
+    google_service.init_calendar_service()
+    google_events_alarm = google_service.get_events_from_day(my_calendars['Reveil'], one_date)
+    google_events_public_holyday = google_service.get_events_from_day(my_calendars['Jours Feries'], one_date)
+    google_events_personal = google_service.get_events_from_day(my_calendars['Elise et Tom'], one_date)
+
+    sorted_events = sort_events(google_events_alarm, google_events_public_holyday, google_events_personal)
+
+    assert sorted_events[0].name == 'Alarm'
+    assert sorted_events[1].name == 'Personal'
+    assert sorted_events[2].name == 'Alarm'
+    assert sorted_events[3].name == 'Personal'
 
