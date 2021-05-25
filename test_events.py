@@ -2,84 +2,102 @@ from events import *
 from AlarmCalendar import *
 from documents.rw_dict import *
 
-myCalendar = AlarmCalendar()    # Init state
+myCalendar = OnlineCalendar()    # Init state
 my_calendars = read_dict_file('documents/my_calendars.txt')
 myCalendar.set_calendars(alarm_calendar=my_calendars['Reveil'],
                          public_holiday_calendar=my_calendars['Jours Feries'],
                          personal_calendar=my_calendars['Elise et Tom'])
 
-my_radio_event = RadioEvent()
+my_alarm = Alarm()
 
 
 def setup_function():
-    my_radio_event.clear_event()
+    my_alarm.clear_event()
 
 #################################################
 # Tests on RadioEvent
 #################################################
-def test_set_radio_events():
+def test_default_value():
+
+    assert my_alarm.title == ''
+    assert my_alarm.is_alarm is False
+    assert my_alarm.radio == 'nrj'  # default value
+    assert my_alarm.repetition == 10  # default value
+    assert my_alarm.alarms_repetition == []  # default value
+    assert my_alarm.event.kind == 'None'
+    assert my_alarm.active == True
+    assert my_alarm.ringing == False
+
+
+def test_set_event():
 
     # First day
     one_date = datetime.datetime(2020, 3, 30)
-    is_alarm, events = myCalendar.is_alarm_today(one_date)
+    is_alarm, event = myCalendar.is_alarm_today(one_date)
 
-    my_radio_event.set_event(is_alarm[0], events[0])
+    my_alarm.set_event(is_alarm, event)
 
-    assert my_radio_event.is_alarm is True
-    assert my_radio_event.title == '#force essai1'
-    assert my_radio_event.start_time == datetime.datetime(2020, 3, 30, hour=9, minute=30)
-    assert my_radio_event.end_time == datetime.datetime(2020, 3, 30, hour=10, minute=30)
-    assert my_radio_event.radio == 'nrj'  # default value
-    assert my_radio_event.repetition == 10  # default value
+    assert my_alarm.title == '#force essai1 - 9:30'
+    assert my_alarm.is_alarm is True
+    assert my_alarm.radio == 'nrj'  # default value
+    assert my_alarm.repetition == 10  # default value
+    assert my_alarm.event == event
+    assert my_alarm.active == True
+    assert my_alarm.ringing == False
 
     # Second day
     one_date = datetime.datetime(2020, 3, 31)
-    is_alarm, events = myCalendar.is_alarm_today(one_date)
+    is_alarm, event = myCalendar.is_alarm_today(one_date)
 
-    my_radio_event.set_event(is_alarm[0], events[0])
+    my_alarm.set_event(is_alarm, event)
 
-    assert my_radio_event.is_alarm is True
-    assert my_radio_event.title == 'essai2'
-    assert my_radio_event.start_time == datetime.datetime(2020, 3, 31, hour=12, minute=00)
-    assert my_radio_event.end_time == datetime.datetime(2020, 3, 31, hour=13, minute=00)
-    assert my_radio_event.radio == 'nrj'  # default value
-    assert my_radio_event.repetition == 10  # default value
+    assert my_alarm.title == 'essai2 - 12:00'
+    assert my_alarm.is_alarm is True
+    assert my_alarm.radio == 'nrj'  # default value
+    assert my_alarm.repetition == 10  # default value
+    assert my_alarm.event == event
+    assert my_alarm.active == True
+    assert my_alarm.ringing == False
 
     # Third day
     one_date = datetime.datetime(2020, 4, 1)
-    is_alarm, events = myCalendar.is_alarm_today(one_date)
+    is_alarm, event = myCalendar.is_alarm_today(one_date)
 
-    my_radio_event.set_event(is_alarm[0], events[0])
+    my_alarm.set_event(is_alarm, event)
 
-    assert my_radio_event.is_alarm is True
-    assert my_radio_event.title == 'essai3'
-    assert my_radio_event.start_time == datetime.datetime(2020, 4, 1, hour=15, minute=30)
-    assert my_radio_event.end_time == datetime.datetime(2020, 4, 1, hour=16, minute=30)
-    assert my_radio_event.radio == 'fun'
-    assert my_radio_event.repetition == 15
+    assert my_alarm.title == 'essai3 - 15:30'
+    assert my_alarm.is_alarm is True
+    assert my_alarm.radio == 'fun'
+    assert my_alarm.repetition == 15
+    assert my_alarm.event == event
+    assert my_alarm.active == True
+    assert my_alarm.ringing == False
 
 
 def test_set_no_event():
 
     # One day
     one_date = datetime.datetime(2020, 3, 24)
-    is_alarm, events = myCalendar.is_alarm_today(one_date)
+    is_alarm, event = myCalendar.is_alarm_today(one_date)
 
-    assert my_radio_event.is_alarm is False
-    assert my_radio_event.title == ''
-    assert my_radio_event.start_time == datetime.datetime(1, 1, 1, hour=00, minute=00)
-    assert my_radio_event.end_time == datetime.datetime(1, 1, 1, hour=00, minute=00)
-    assert my_radio_event.radio == 'nrj'
-    assert my_radio_event.repetition == 10
+    my_alarm.set_event(is_alarm, event)
+
+    assert my_alarm.title == ''
+    assert my_alarm.is_alarm is False
+    assert my_alarm.radio == 'nrj'
+    assert my_alarm.repetition == 10
+    assert my_alarm.event.kind == 'None'
+    assert my_alarm.active == True
+    assert my_alarm.ringing == False
 
 
 def test_list_of_alarms():
 
     # First day
     one_date = datetime.datetime(2020, 3, 30)
-    is_alarm, events = myCalendar.is_alarm_today(one_date)
+    is_alarm, event = myCalendar.is_alarm_today(one_date)
 
-    my_radio_event.set_event(is_alarm[0], events[0])
+    my_alarm.set_event(is_alarm, event)
 
     alarms = [datetime.datetime(2020, 3, 30, hour=9, minute=30),
               datetime.datetime(2020, 3, 30, hour=9, minute=30) + datetime.timedelta(minutes=10),
@@ -88,105 +106,105 @@ def test_list_of_alarms():
               datetime.datetime(2020, 3, 30, hour=9, minute=30) + datetime.timedelta(minutes=40),
               datetime.datetime(2020, 3, 30, hour=9, minute=30) + datetime.timedelta(minutes=50)]
 
-    assert len(my_radio_event.alarms) == 6
+    assert len(my_alarm.alarms_repetition) == 6
     assert all([class_datetime == expect_datetime
-                for class_datetime, expect_datetime in zip(my_radio_event.alarms, alarms)])
+                for class_datetime, expect_datetime in zip(my_alarm.alarms_repetition, alarms)])
 
 
 def test_start_stop_ringing():
 
     # First day
     one_date = datetime.datetime(2020, 3, 30, hour=9, minute=20, second=0)
-    is_alarm, events = myCalendar.is_alarm_today(one_date, reset_hour=True)
+    is_alarm, event = myCalendar.is_alarm_today(one_date, reset_hour=True)
 
-    my_radio_event.set_event(is_alarm[0], events[0])
+    my_alarm.set_event(is_alarm, event)
 
     # Before event
-    alarm_is_ringing = my_radio_event.is_ringing(one_date)
+    alarm_is_ringing = my_alarm.is_ringing(one_date)
     assert alarm_is_ringing is False
-    assert my_radio_event.active is True
+    assert my_alarm.active is True
 
     # At the time of the event
     one_date = datetime.datetime(2020, 3, 30, hour=9, minute=30, second=0)
-    alarm_is_ringing = my_radio_event.is_ringing(one_date)
+    alarm_is_ringing = my_alarm.is_ringing(one_date)
     assert alarm_is_ringing is True
-    assert my_radio_event.active is True
+    assert my_alarm.active is True
 
     # Stop ringing
-    my_radio_event.stop_alarm()
+    my_alarm.stop_alarm()
 
     # New test at the same time
-    alarm_is_ringing = my_radio_event.is_ringing(one_date)
+    alarm_is_ringing = my_alarm.is_ringing(one_date)
     assert alarm_is_ringing is False
-    assert my_radio_event.active is False
+    assert my_alarm.active is False
 
 
 def test_end_of_datetime_range():
 
     # First day
     one_date = datetime.datetime(2020, 3, 30, hour=9, minute=20, second=0)
-    is_alarm, events = myCalendar.is_alarm_today(one_date, reset_hour=True)
+    is_alarm, event = myCalendar.is_alarm_today(one_date, reset_hour=True)
 
-    my_radio_event.set_event(is_alarm[0], events[0])
+    my_alarm.set_event(is_alarm, event)
 
     # At the time of the event
     one_date = datetime.datetime(2020, 3, 30, hour=9, minute=30, second=0)
-    alarm_is_ringing = my_radio_event.is_ringing(one_date)
+    alarm_is_ringing = my_alarm.is_ringing(one_date)
     assert alarm_is_ringing is True
-    assert my_radio_event.active is True
+    assert my_alarm.active is True
 
     # At the last minute of the event
-    alarm_is_ringing = my_radio_event.is_ringing(one_date + datetime.timedelta(hours=1))
+    alarm_is_ringing = my_alarm.is_ringing(one_date + datetime.timedelta(hours=1))
     assert alarm_is_ringing is True
-    assert my_radio_event.active is True
+    assert my_alarm.active is True
 
     # After the end of
-    alarm_is_ringing = my_radio_event.is_ringing(one_date + datetime.timedelta(hours=1, minutes=1))
+    alarm_is_ringing = my_alarm.is_ringing(one_date + datetime.timedelta(hours=1, minutes=1))
     assert alarm_is_ringing is False
-    assert my_radio_event.active is True
+    assert my_alarm.active is True
 
 
 def test_snooze_ringing():
     # First day
     one_date = datetime.datetime(2020, 3, 30, hour=9, minute=20, second=0)
-    is_alarm, events = myCalendar.is_alarm_today(one_date, reset_hour=True)
+    is_alarm, event = myCalendar.is_alarm_today(one_date, reset_hour=True)
 
-    my_radio_event.set_event(is_alarm[0], events[0])
+    my_alarm.set_event(is_alarm, event)
 
     # At the time of the event
     one_date = datetime.datetime(2020, 3, 30, hour=9, minute=30, second=0)
-    alarm_is_ringing = my_radio_event.is_ringing(one_date)
+    alarm_is_ringing = my_alarm.is_ringing(one_date)
     assert alarm_is_ringing is True
-    assert my_radio_event.active is True
+    assert my_alarm.active is True
 
     # Stop ringing
-    my_radio_event.snooze()
+    my_alarm.snooze()
 
     # New test at the same time
-    alarm_is_ringing = my_radio_event.is_ringing(one_date)
+    alarm_is_ringing = my_alarm.is_ringing(one_date)
     assert alarm_is_ringing is False
-    assert my_radio_event.active is True
-    assert len(my_radio_event.alarms) == 5
+    assert my_alarm.active is True
+    assert len(my_alarm.alarms_repetition) == 5
 
     # 5 minutes later
-    alarm_is_ringing = my_radio_event.is_ringing(one_date + datetime.timedelta(minutes=5))
+    alarm_is_ringing = my_alarm.is_ringing(one_date + datetime.timedelta(minutes=5))
     assert alarm_is_ringing is False
-    assert my_radio_event.active is True
+    assert my_alarm.active is True
 
     # 10 minutes later
-    alarm_is_ringing = my_radio_event.is_ringing(one_date + datetime.timedelta(minutes=10))
+    alarm_is_ringing = my_alarm.is_ringing(one_date + datetime.timedelta(minutes=10))
     assert alarm_is_ringing is True
-    assert my_radio_event.active is True
+    assert my_alarm.active is True
 
 #################################################
-# Tests on CalendarEvent
+# Tests on Event
 #################################################
-def test_no_calendar_event():
+def test_no_event():
 
     google_event_dict = dict()
 
     # No event
-    calendar_event = CalendarEvent(google_event_dict, calendar_name='test', name='name')
+    calendar_event = Event(google_event_dict, calendar_name='test', name='name')
 
     assert calendar_event.kind == 'None'
     assert calendar_event.calendar_name == 'test'
@@ -198,26 +216,26 @@ def test_no_calendar_event():
             count_field += 1
     assert count_field == 0
 
-def test_calendar_event_hour():
+def test_event_hour():
 
     google_event_dict = dict()
     google_event_dict['id'] = '0123456789'
     google_event_dict['summary'] = 'my summary'
     google_event_dict['description'] = 'my description'
     google_event_dict['start'] = dict()
-    google_event_dict['start']['dateTime'] = 'my start'
+    google_event_dict['start']['dateTime'] = '2021-05-25T10:51:00+0000'
     google_event_dict['end'] = dict()
-    google_event_dict['end']['dateTime'] = 'my end'
+    google_event_dict['end']['dateTime'] = '2021-05-25T11:51:00+0000'
 
-    calendar_event = CalendarEvent(google_event_dict, 'test', name='name')
+    calendar_event = Event(google_event_dict, 'test', name='name')
 
     assert calendar_event.kind == 'Hour'
     assert calendar_event.calendar_name == 'test'
     assert calendar_event.name == 'name'
     assert calendar_event.title == 'my summary'
     assert calendar_event.description == 'my description'
-    assert calendar_event.start == 'my start'
-    assert calendar_event.end == 'my end'
+    assert calendar_event.start == datetime.datetime(2021, 5, 25, 10, 51, 0)
+    assert calendar_event.end == datetime.datetime(2021, 5, 25, 11, 51, 0)
 
     count_field = 0
     for field in ['start', 'end', 'title', 'description', 'id']:
@@ -225,17 +243,17 @@ def test_calendar_event_hour():
             count_field += 1
     assert count_field == 5
 
-def test_calendar_event_fullday():
+def test_event_fullday():
 
     google_event_dict = dict()
     google_event_dict['id'] = '0123456789'
     google_event_dict['summary'] = 'my summary'
     google_event_dict['start'] = dict()
-    google_event_dict['start']['date'] = 'my start'
+    google_event_dict['start']['date'] = '2021-05-25'
     google_event_dict['end'] = dict()
-    google_event_dict['end']['date'] = 'my end'
+    google_event_dict['end']['date'] = '2021-05-26'
 
-    calendar_event = CalendarEvent(google_event_dict, 'test', name='name')
+    calendar_event = Event(google_event_dict, 'test', name='name')
 
     assert calendar_event.kind == 'Day'
     assert calendar_event.calendar_name == 'test'
@@ -247,18 +265,18 @@ def test_calendar_event_fullday():
             count_field += 1
     assert count_field == 5
 
-def test_calendar_event_is_same():
+def test_event_is_same():
 
     google_event_dict = dict()
     google_event_dict['id'] = '0123456789'
     google_event_dict['summary'] = 'my summary'
     google_event_dict['start'] = dict()
-    google_event_dict['start']['date'] = 'my start'
+    google_event_dict['start']['date'] = '2021-05-25'
     google_event_dict['end'] = dict()
-    google_event_dict['end']['date'] = 'my end'
+    google_event_dict['end']['date'] = '2021-05-26'
 
-    calendar_event1 = CalendarEvent(google_event_dict, 'test', name='name')
-    calendar_event2 = CalendarEvent(google_event_dict, 'test', name='name')
+    calendar_event1 = Event(google_event_dict, 'test', name='name')
+    calendar_event2 = Event(google_event_dict, 'test', name='name')
 
     assert calendar_event1 == calendar_event2
 
@@ -266,11 +284,11 @@ def test_calendar_event_is_same():
     google_event_dict['id'] = '0123456789'
     google_event_dict['summary'] = 'my summary'
     google_event_dict['start'] = dict()
-    google_event_dict['start']['date'] = 'my new start'
+    google_event_dict['start']['date'] = '2021-05-25'
     google_event_dict['end'] = dict()
-    google_event_dict['end']['date'] = 'my end'
+    google_event_dict['end']['date'] = '2021-05-25'
 
-    calendar_event3 = CalendarEvent(google_event_dict, 'test', name='name')
+    calendar_event3 = Event(google_event_dict, 'test', name='name')
 
     assert calendar_event2 != calendar_event3
 
@@ -338,8 +356,8 @@ def test_convert_google_events_to_calendar_events():
     assert calendar_events[0].calendar_name == 'Réveil'
     assert calendar_events[0].title == 'Reveil 4'
     assert calendar_events[0].description == '#radio nrj\n#repetition 5'
-    assert calendar_events[0].start == '2020-04-03T10:00:00+02:00'
-    assert calendar_events[0].end == '2020-04-03T10:30:00+02:00'
+    assert calendar_events[0].start == datetime.datetime(2020, 4, 3, 10, 00, 00)
+    assert calendar_events[0].end == datetime.datetime(2020, 4, 3, 10,30, 0)
     assert calendar_events[0].id == '6kfnrm8phlcil6sha9t07rr3uh'
     assert calendar_events[0].name == 'name'
     assert calendar_events[0].kind == 'Hour'
@@ -357,8 +375,8 @@ def test_convert_google_events_to_calendar_events_is_alarm():
     assert calendar_events[0].calendar_name == 'Réveil'
     assert calendar_events[0].title == 'Reveil 4'
     assert calendar_events[0].description == '#radio nrj\n#repetition 5'
-    assert calendar_events[0].start == '2020-04-03T10:00:00+02:00'
-    assert calendar_events[0].end == '2020-04-03T10:30:00+02:00'
+    assert calendar_events[0].start == datetime.datetime(2020, 4, 3, 10, 00, 00)
+    assert calendar_events[0].end == datetime.datetime(2020, 4, 3, 10,30, 0)
     assert calendar_events[0].id == '6kfnrm8phlcil6sha9t07rr3uh'
     assert calendar_events[0].name == 'name'
     assert calendar_events[0].kind == 'Hour'
@@ -373,7 +391,11 @@ def test_convert_google_events_to_calendar_events_no_event():
 
     calendar_events = convert_google_events_to_calendar_events(google_events, name='name')
 
-    assert len(calendar_events) == 0
+    assert len(calendar_events) == 1
+
+    assert calendar_events[0].calendar_name == 'Réveil'
+    assert calendar_events[0].name == 'name'
+    assert calendar_events[0].kind == 'None'
 
 
 #################################################

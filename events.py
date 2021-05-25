@@ -7,18 +7,15 @@ import logging
 logger = logging.getLogger("radioAlarmLogger")
 
 
-class RadioEvent:
+class Alarm:
     def __init__(self):
-        self.raw = None
+        self.event = Event([], 'no_calendar', 'no_name')
 
-        self.id = ''
-        self.is_alarm = False
         self.title = ''
-        self.start_time = datetime.min
-        self.end_time = datetime.min
-        self.alarms = []
+        self.is_alarm = False
         self.radio = 'nrj'
         self.repetition = 10
+        self.alarms_repetition = []
 
         self.active = True
         self.ringing = False
@@ -26,34 +23,32 @@ class RadioEvent:
     def set_event(self, is_alarm, event):
 
         self.is_alarm = is_alarm
-        self.raw = event
+        self.event = event
 
         self.format_data()
         self.set_alarm_repetition()
 
     def format_data(self):
 
-        self.title = self.raw.title
+        if self.event.kind == 'Hour':
+            self.title = "{} - {}:{:0>2d}".format(self.event.title, self.event.start.hour, self.event.start.minute)
 
-        # Set the start/end time as datetime (Remove useless timezone)
-        if self.raw.kind == 'Hour':
-            self.start_time = datetime.strptime(self.raw.start, '%Y-%m-%dT%H:%M:%S%z').replace(tzinfo=None)
-            self.end_time = datetime.strptime(self.raw.end, '%Y-%m-%dT%H:%M:%S%z').replace(tzinfo=None)
+            # Set radio
+            self.set_radio(extract_information_with_hashtag(self.event.description, "#radio"))
+
+            # Set repetition: Extract the digit of the repetition text
+            text_repetition = extract_information_with_hashtag(self.event.description, "#repetition")
+            digits_pattern = "([0-9]{1,2})"
+            digits_search = re.search(digits_pattern, text_repetition)
+            if len(text_repetition) > 0 and digits_search:
+                self.set_repetition(digits_search.group(1))
+            else:
+                logger.debug("There is no #repetition of no digits")
+
+        elif self.event.kind == 'Day':
+            self.title = self.event.title
         else:
-            self.start_time = datetime.strptime(self.raw.start, '%Y-%m-%d').replace(tzinfo=None)
-            self.end_time = datetime.strptime(self.raw.end, '%Y-%m-%d').replace(tzinfo=None)
-
-        # Set radio
-        self.set_radio(extract_information_with_hashtag(self.raw.description, "#radio"))
-
-        # Set repetition: Extract the digit of the repetition text
-        text_repetition = extract_information_with_hashtag(self.raw.description, "#repetition")
-        digits_pattern = "([0-9]{1,2})"
-        digits_search = re.search(digits_pattern, text_repetition)
-        if len(text_repetition) > 0 and digits_search:
-            self.set_repetition(digits_search.group(1))
-        else:
-            logger.debug("There is no #repetition of no digits")
+            self.title = ''
 
     def set_radio(self, radio_str):
 
@@ -68,12 +63,12 @@ class RadioEvent:
             self.repetition = int(repetition_value)
 
     def is_ringing(self, current_datetime):
-        if self.start_time <= current_datetime <= self.end_time:
+        if self.event.start <= current_datetime <= self.event.end:
             if self.active is True:
                 if self.ringing is False:
-                    if current_datetime.replace(second=0, microsecond=0) in self.alarms:
+                    if current_datetime.replace(second=0, microsecond=0) in self.alarms_repetition:
                         self.ringing = True
-                        self.alarms.pop(0)  # Remove first alarm to avoid new alarm for the same datetime
+                        self.alarms_repetition.pop(0)  # Remove first alarm to avoid new alarm for the same datetime
                         logger.info("Alarm must ring now")
                     else:
                         self.ringing = False
@@ -95,31 +90,28 @@ class RadioEvent:
     def set_alarm_repetition(self):
 
         if self.is_alarm is True:
-            self.alarms = []  # Reset alarms
+            self.alarms_repetition = []  # Reset alarms
 
-            repet_datetime = self.start_time
-            while repet_datetime < self.end_time:
-                self.alarms.append(repet_datetime)
+            repet_datetime = self.event.start
+            while repet_datetime < self.event.end:
+                self.alarms_repetition.append(repet_datetime)
                 repet_datetime += timedelta(minutes=self.repetition)
 
     def clear_event(self):
         logger.debug("Clear event")
-        self.raw = None
+        self.event = Event([], 'no_calendar', 'no_name')
 
-        self.id = ''
         self.is_alarm = False
         self.title = ''
-        self.start_time = datetime.min
-        self.end_time = datetime.min
-        self.alarms = []
         self.radio = 'nrj'
         self.repetition = 10
+        self.alarms_repetition = []
 
         self.active = True
         self.ringing = False
 
 
-class CalendarEvent:
+class Event:
     def __init__(self, calendar_item, calendar_name, name):
 
         self.calendar_name = calendar_name
@@ -127,7 +119,6 @@ class CalendarEvent:
 
         if len(calendar_item) == 0:
             self.kind = 'None'  # 'None', 'Hour', 'Day'
-            self.is_alarm = False
         else:
             self.id = get_value_from_dict(calendar_item, 'id')
             self.title = get_value_from_dict(calendar_item, 'summary', '')
@@ -135,23 +126,23 @@ class CalendarEvent:
 
             if 'dateTime' in calendar_item['start']:
                 self.kind = 'Hour'
-                self.start = calendar_item['start']['dateTime']
-                self.end = calendar_item['end']['dateTime']
+                self.start = datetime.strptime(calendar_item['start']['dateTime'], '%Y-%m-%dT%H:%M:%S%z').replace(tzinfo=None)
+                self.end = datetime.strptime(calendar_item['end']['dateTime'], '%Y-%m-%dT%H:%M:%S%z').replace(tzinfo=None)
             elif 'date' in calendar_item['start']:
                 self.kind = 'Day'
-                self.start = calendar_item['start']['date']
-                self.end = calendar_item['end']['date']
+                self.start = datetime.strptime(calendar_item['start']['date'], '%Y-%m-%d').replace(tzinfo=None)
+                self.end = datetime.strptime(calendar_item['end']['date'], '%Y-%m-%d').replace(tzinfo=None)
 
     def __eq__(self, other):
-        if isinstance(other, CalendarEvent):
+        if isinstance(other, Event):
             return self.calendar_name == other.calendar_name and\
-                   self.kind == other.kind and\
                    self.name == other.name and\
-                   self.id == other.id and\
+                   self.kind == other.kind and\
                    self.title == other.title and\
                    self.description == other.description and\
                    self.start == other.start and\
-                   self.end == other.end
+                   self.end == other.end and\
+                   self.id == other.id
         return False
 
 
@@ -161,13 +152,17 @@ def convert_google_events_to_calendar_events(google_events, name):
     :param google_events: google events, format of google calendar API event
     :param name: Chosen name for the calendarS, String
     :return:
-        - list_events: List of calendarEvent
+        - list_events: List of Event(s)
     """
 
     list_events = []
     for current_event in google_events['items']:
-        my_calendar_event = CalendarEvent(current_event, google_events['summary'], name=name)
+        my_calendar_event = Event(current_event, google_events['summary'], name=name)
         list_events.append(my_calendar_event)
+
+    # Add a No-Event to the list in case of no event
+    if len(google_events['items'])  == 0:
+        list_events.append(Event([], google_events['summary'], name=name))
 
     return list_events
 
