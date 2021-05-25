@@ -45,10 +45,8 @@ class Alarm:
             else:
                 logger.debug("There is no #repetition of no digits")
 
-        elif self.event.kind == 'Day':
-            self.title = self.event.title
         else:
-            self.title = ''
+            self.title = self.event.title
 
     def set_radio(self, radio_str):
 
@@ -119,6 +117,7 @@ class Event:
 
         if len(calendar_item) == 0:
             self.kind = 'None'  # 'None', 'Hour', 'Day'
+            self.title = ''
         else:
             self.id = get_value_from_dict(calendar_item, 'id')
             self.title = get_value_from_dict(calendar_item, 'summary', '')
@@ -144,6 +143,13 @@ class Event:
                    self.end == other.end and\
                    self.id == other.id
         return False
+
+    def set_params(self, parameters):
+
+        attributes = ['calendar_name', 'name', 'kind', 'title', 'id', 'description', 'start', 'end']
+        for attr in attributes:
+            if attr in parameters:
+                setattr(self, attr, parameters[attr])
 
 
 def convert_google_events_to_calendar_events(google_events, name):

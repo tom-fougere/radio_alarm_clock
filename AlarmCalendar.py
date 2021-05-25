@@ -142,9 +142,7 @@ def sort_events(events_alarm_calendar, events_public_holiday_calendar, events_pe
     while len(full_list) > 0:
         event = full_list[index]
 
-        if event.kind == 'None' and priority < 5:
-            index +=1
-        elif priority == 0:
+        if priority == 0:
             if event.title.lower().find(FORCE_STRING)>=0:  # FORCE
                 sorted_events.append(event)
                 full_list.pop(index)
@@ -157,24 +155,24 @@ def sort_events(events_alarm_calendar, events_public_holiday_calendar, events_pe
             else:
                 index += 1
         elif priority == 2:
-            if event.name == public_holiday_calendar_name:
+            if event.kind != 'None' and event.name == public_holiday_calendar_name:
                 sorted_events.append(event)
                 full_list.pop(index)
             else:
                 index += 1
         elif priority == 3:
-            if event.name == alarm_calendar_name:
+            if event.kind != 'None' and event.name == alarm_calendar_name:
                 sorted_events.append(event)
                 full_list.pop(index)
             else:
                 index += 1
         elif priority == 4:
-            if event.name == personal_calendar_name:
+            if event.kind != 'None' and event.name == personal_calendar_name:
                 sorted_events.append(event)
                 full_list.pop(index)
             else:
                 index += 1
-        if priority == 5:
+        elif priority == 5:
             sorted_events.append(event)
             full_list.pop(index)
 

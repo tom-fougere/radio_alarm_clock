@@ -209,9 +209,10 @@ def test_no_event():
     assert calendar_event.kind == 'None'
     assert calendar_event.calendar_name == 'test'
     assert calendar_event.name == 'name'
+    assert calendar_event.title == ''
 
     count_field = 0
-    for field in ['start', 'end', 'title', 'description', 'id']:
+    for field in ['start', 'end', 'description', 'id']:
         if hasattr(calendar_event, field):
             count_field += 1
     assert count_field == 0
@@ -291,6 +292,44 @@ def test_event_is_same():
     calendar_event3 = Event(google_event_dict, 'test', name='name')
 
     assert calendar_event2 != calendar_event3
+
+
+def test_event_set_params():
+
+    google_event_dict = dict()
+
+    # No event
+    calendar_event = Event(google_event_dict, calendar_name='test', name='name')
+
+    assert calendar_event.kind == 'None'
+    assert calendar_event.calendar_name == 'test'
+    assert calendar_event.name == 'name'
+    assert calendar_event.title == ''
+
+    count_field = 0
+    for field in ['start', 'end', 'description', 'id']:
+        if hasattr(calendar_event, field):
+            count_field += 1
+    assert count_field == 0
+
+    # Set params
+    parameters = dict()
+    parameters['name'] = 'new name'
+    parameters['title'] = 'new title'
+    parameters['start'] = 'new start'
+    parameters['id'] = 'new id'
+    calendar_event.set_params(parameters)
+
+    count_field = 0
+    for field in ['start', 'end', 'description', 'id']:
+        if hasattr(calendar_event, field):
+            count_field += 1
+    assert count_field == 2
+
+    assert calendar_event.name == "new name"
+    assert calendar_event.title == "new title"
+    assert calendar_event.start == "new start"
+    assert calendar_event.id == "new id"
 
 
 #################################################
@@ -396,6 +435,7 @@ def test_convert_google_events_to_calendar_events_no_event():
     assert calendar_events[0].calendar_name == 'Réveil'
     assert calendar_events[0].name == 'name'
     assert calendar_events[0].kind == 'None'
+    assert calendar_events[0].title == ''
 
 
 #################################################

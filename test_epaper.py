@@ -1,11 +1,11 @@
 from epaper_display import *
+from events import Event
 
 from datetime import datetime, timedelta
 
 display_test = EPaper()
-events = []
-events.append(None)
-events.append(None)
+event_today = Event([], 'no_calendar', 'no_name')
+event_tomorrow = Event([], 'no_calendar', 'no_name')
 
 def setup_function():
     display_test.is_full_updated = False
@@ -43,7 +43,7 @@ def test_update():
 
     # Few seconds later
     one_datetime = now + timedelta(seconds=5)
-    display_test.update(one_datetime, events)
+    display_test.update(one_datetime, event_today, event_tomorrow, is_wifi_on=True, is_alarm_on=False)
 
     assert display_test.is_full_updated is False
     assert display_test.hour == 20
@@ -51,7 +51,7 @@ def test_update():
 
     # One minute later
     one_datetime = now + timedelta(seconds=65)
-    display_test.update(one_datetime, events)
+    display_test.update(one_datetime, event_today, event_tomorrow, is_wifi_on=True, is_alarm_on=False)
 
     assert display_test.is_full_updated is False
     assert display_test.hour == 20
@@ -59,7 +59,7 @@ def test_update():
 
     # One hour later
     one_datetime = now + timedelta(minutes=65)
-    display_test.update(one_datetime, events)
+    display_test.update(one_datetime, event_today, event_tomorrow, is_wifi_on=True, is_alarm_on=False)
 
     assert display_test.is_full_updated is True
     assert display_test.hour == 21
@@ -67,7 +67,7 @@ def test_update():
 
     # One hour and one minute later
     one_datetime = now + timedelta(minutes=66)
-    display_test.update(one_datetime, events)
+    display_test.update(one_datetime, event_today, event_tomorrow, is_wifi_on=True, is_alarm_on=False)
 
     assert display_test.is_full_updated is False
     assert display_test.hour == 21
@@ -75,7 +75,9 @@ def test_update():
 
     # One hour and 2 minutes later + force update
     one_datetime = now + timedelta(minutes=67)
-    display_test.update(one_datetime, events, force_update=True, is_alarm_on=True)
+
+    event_today.set_params({'start':datetime(2021, 4, 19, 23, 00, 00), 'end':datetime(2021, 4, 19, 23, 30, 00)})
+    display_test.update(one_datetime, event_today, event_tomorrow, force_update=True, is_alarm_on=True)
 
     assert display_test.is_full_updated is True
     assert display_test.hour == 21
