@@ -2,10 +2,10 @@
 import logging.config
 
 # Personal packages
-from AlarmCalendar import AlarmCalendar
+from AlarmCalendar import OnlineCalendar
 from dateTime import ReliableDate
 from documents.rw_dict import *
-from events import Event
+from events import Alarm
 from epaper_display import EPaper
 from gpio_button import Button
 from InternetCheck import InternetChecker
@@ -17,10 +17,10 @@ logging.config.fileConfig(fname='logging.conf', disable_existing_loggers=False)
 logger = logging.getLogger("radioAlarmLogger")
 
 internetChecker = InternetChecker()
-myCalendar = AlarmCalendar()
+myCalendar = OnlineCalendar()
 myDatetime = ReliableDate()
 myDisplay = EPaper()
-myAlarm = Event()
+myAlarm = Alarm()
 myRadio = Radio()
 
 alarmButtonStop = Button(5)
@@ -79,11 +79,11 @@ if __name__ == '__main__':
         print(myDatetime.get_datetime_string())
 
         # Search events in calendar
-        is_alarm_today, event_today = myCalendar.is_alarm_today(current_datetime, reset_hour=True)
-        is_alarm_tomorrow, event_tomorrow = myCalendar.is_alarm_tomorrow(current_datetime)
+        alarm_today, event_today = myCalendar.is_alarm_today(current_datetime, reset_hour=True)
+        alarm_tomorrow, event_tomorrow = myCalendar.is_alarm_tomorrow(current_datetime)
 
         # Set event
-        myAlarm.set_event(is_alarm_today, event_today)
+        myAlarm.set_event(alarm_today, event_today)
 
         # Set radio/music
         if is_internet_ok is True:
@@ -91,20 +91,19 @@ if __name__ == '__main__':
         else:
             myRadio.set_radio_url('mp3')
 
-        # Select the bell icon following the current datetime (change to tomorrow after the alarm is passed)
-        if current_datetime <= myAlarm.end_time:
-            display_bell_icon = is_alarm_today
-        else:
-            display_bell_icon = is_alarm_tomorrow
-
         # Start music in case of alarm triggered
         if myAlarm.is_ringing(current_datetime) and myRadio.on is False:
-            logger.info('Start        radio / music !')
-        display_bell_icon = event_tomorrow
-        myRadio.turn_on()
+            logger.info('Start radio / music !')
+            myRadio.turn_on()
+
+        # Select the bell icon following the current datetime (change to tomorrow after the alarm is passed)
+        if event_today.kind != 'None' and current_datetime <= event_today.end:
+            display_bell_icon = alarm_today
+        else:
+            display_bell_icon = alarm_tomorrow
 
         # Display datetime in the screen
-        myDisplay.update(current_datetime, [event_today, event_tomorrow],
+        myDisplay.update(current_datetime, event_today, event_tomorrow,
                          is_wifi_on=is_internet_ok, is_alarm_on=display_bell_icon)
 
         
