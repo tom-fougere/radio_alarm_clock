@@ -1,5 +1,6 @@
 # External packages
 import logging.config
+from datetime import datetime, timedelta
 
 # Personal packages
 from AlarmCalendar import OnlineCalendar
@@ -75,7 +76,7 @@ if __name__ == '__main__':
 
         # Get the current datetime
         myDatetime.update()
-        current_datetime = myDatetime.get_datetime()
+        current_datetime = myDatetime.get_datetime() - timedelta(days=1, hours=7, minutes=32)
         print(myDatetime.get_datetime_string())
 
         # Search events in calendar
@@ -97,15 +98,26 @@ if __name__ == '__main__':
             myRadio.turn_on()
 
         # Select the bell icon following the current datetime (change to tomorrow after the alarm is passed)
-        if event_today.kind != 'None' and current_datetime <= event_today.end:
+        if event_today.kind != 'Hour' and current_datetime <= event_today.end:
             display_bell_icon = alarm_today
         else:
             display_bell_icon = alarm_tomorrow
+
+        # Select the bell icon following the current datetime (change to tomorrow after the alarm is passed)
+        if event_today.kind == 'Hour':
+            if current_datetime <= event_today.end:
+                display_bell_icon = alarm_today
+            else:
+                display_bell_icon = alarm_tomorrow
+        else:
+            if current_datetime < datetime(current_datetime.year, current_datetime.month, current_datetime.day,
+                                           hour=14, minute=0, second=0):
+                display_bell_icon = alarm_today
+            else:
+                display_bell_icon = alarm_tomorrow
 
         # Display datetime in the screen
         myDisplay.update(current_datetime, event_today, event_tomorrow,
                          is_wifi_on=is_internet_ok, is_alarm_on=display_bell_icon)
 
         
-
-
