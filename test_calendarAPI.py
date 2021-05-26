@@ -1,15 +1,19 @@
 from calendarAPI import *
 from documents.rw_dict import *
 
-myCalendar = GoogleCalendarAPI()
+
+my_calendars = read_dict_file('documents/my_calendars.txt')
+mandatory_calendars = read_dict_file('documents/mandatory_calendars.txt')
+myGoogleCalendar = GoogleCalendarAPI()
+
+
+def setup_function():
+    myGoogleCalendar.init_calendar_service()
 
 
 def test_list_calendars():
-    myCalendar.init_calendar_service()
-    calendars_name = myCalendar.get_list_calendars_name()
-    calendars_id = myCalendar.get_list_calendars_id()
-
-    mandatory_calendars = read_dict_file('documents/mandatory_calendars.txt')
+    calendars_name = myGoogleCalendar.get_list_calendars_name()
+    calendars_id = myGoogleCalendar.get_list_calendars_id()
 
     count_name = 0
     count_id = 0
@@ -25,8 +29,7 @@ def test_list_calendars():
 
 def test_events_in_calendar():
     one_date = datetime.datetime(2021, 3, 24)
-    myCalendar.init_calendar_service()
-    events = myCalendar.get_events_from_day('primary', one_date)
+    events = myGoogleCalendar.get_events_from_day('primary', one_date)
 
     assert len(events['items']) == 2
 
@@ -39,19 +42,15 @@ def test_events_in_calendar():
 
     # Search events after a defined time
     one_date = datetime.datetime(2021, 3, 24, hour=14, minute=1)
-    events = myCalendar.get_events_from_day('primary', one_date)
+    events = myGoogleCalendar.get_events_from_day('primary', one_date)
     assert len(events['items']) == 1
 
     # Reset hour to 0:00:00
-    events = myCalendar.get_events_from_day('primary', one_date, reset_hour=True)
+    events = myGoogleCalendar.get_events_from_day('primary', one_date, reset_hour=True)
     assert len(events['items']) == 2
 
 
 def test_add_delete_event():
-
-    my_calendars = read_dict_file('documents/my_calendars.txt')
-
-    myCalendar.init_calendar_service()
 
     event = {
         'summary': 'Test Event',
@@ -66,15 +65,40 @@ def test_add_delete_event():
         },
     }
 
-    list_events = myCalendar.get_events_from_day(my_calendars['Reveil'], datetime.datetime(2020, 3, 28))
+    list_events = myGoogleCalendar.get_events_from_day(my_calendars['Reveil'], datetime.datetime(2020, 3, 28))
     assert len(list_events['items']) == 0
 
-    inserted_event = myCalendar.add_event(event, calendar_id=my_calendars['Reveil'])
+    inserted_event = myGoogleCalendar.add_event(event, calendar_id=my_calendars['Reveil'])
 
-    list_events = myCalendar.get_events_from_day(my_calendars['Reveil'], datetime.datetime(2020, 3, 28))
+    list_events = myGoogleCalendar.get_events_from_day(my_calendars['Reveil'], datetime.datetime(2020, 3, 28))
     assert len(list_events['items']) == 1
     assert inserted_event == list_events['items'][0]
 
-    myCalendar.delete_event(inserted_event, calendar_id=my_calendars['Reveil'])
+    myGoogleCalendar.delete_event(inserted_event, calendar_id=my_calendars['Reveil'])
+
+
+def test_get_event():
+
+    list_events = myGoogleCalendar.get_events_from_day(my_calendars['Reveil'], datetime.datetime(2020, 3, 26))
+    event = myGoogleCalendar.get_event(my_calendars['Reveil'], list_events['items'][0]['id'])
+
+    assert event == list_events['items'][0]
+
+
+def test_update_event():
+
+    list_events = myGoogleCalendar.get_events_from_day(my_calendars['Reveil'], datetime.datetime(2020, 3, 25))
+
+    assert list_events['items'][0]['summary'] == 'Reveil 1'
+
+    list_events['items'][0]['summary'] = 'Reveil 1 + 2 + 3'
+    myGoogleCalendar.update_event(list_events['items'][0], my_calendars['Reveil'])
+
+    assert list_events['items'][0]['summary'] == 'Reveil 1 + 2 + 3'
+
+    list_events['items'][0]['summary'] = 'Reveil 1'
+    myGoogleCalendar.update_event(list_events['items'][0], my_calendars['Reveil'])
+
+
 
 

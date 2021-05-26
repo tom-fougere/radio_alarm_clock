@@ -145,6 +145,19 @@ class GoogleCalendarAPI:
                                                    timeZone=x).execute()
         return events
 
+    def get_event(self, calendar_id, event_id):
+        """
+        Get event in specified calendar
+        :param calendar_id: ID of the calendar
+        :param event_id: ID of the Event
+        :return:
+            - event: google calendar event
+        """
+
+        event = self.google_service.events().get(calendarId=calendar_id, eventId=event_id).execute()
+
+        return event
+
     def add_event(self, event, calendar_id):
         """
         Insert event in specified calendar
@@ -186,3 +199,24 @@ class GoogleCalendarAPI:
         self.init_calendar_service()
 
         logger.info('Event deleted to the calendar (event: %s | calendar-id: %s)', google_event, calendar_id)
+
+    def update_event(self, google_event, calendar_id):
+        """
+        Update event in specified calendar
+        :param google_event: Event to update to the calendar, google event
+        :param calendar_id: ID of the calendar
+        """
+
+        # Change accesses to Google Calendar API in order to write events
+        self.set_credentials(token_file=TOKEN_EVENTS_JSON_FILE, scopes=SCOPES_EVENTS)
+        self.build_google_service_access()
+
+        # Delete event
+        self.google_service.events().update(calendarId=calendar_id,
+                                            eventId=google_event['id'],
+                                            body=google_event).execute()
+
+        # Put back the default access to Google Calendar API
+        self.init_calendar_service()
+
+        logger.info('Event updated to the calendar (event: %s | calendar-id: %s)', google_event, calendar_id)
