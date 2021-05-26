@@ -46,3 +46,35 @@ def test_events_in_calendar():
     events = myCalendar.get_events_from_day('primary', one_date, reset_hour=True)
     assert len(events['items']) == 2
 
+
+def test_add_delete_event():
+
+    my_calendars = read_dict_file('documents/my_calendars.txt')
+
+    myCalendar.init_calendar_service()
+
+    event = {
+        'summary': 'Test Event',
+        'description': 'An event added with UT in test_calendarAPI.py',
+        'start': {
+            'dateTime': '2020-03-28T09:00:00',
+            'timeZone': 'Europe/Paris',
+        },
+        'end': {
+            'dateTime': '2020-03-28T17:00:00',
+            'timeZone': 'Europe/Paris',
+        },
+    }
+
+    list_events = myCalendar.get_events_from_day(my_calendars['Reveil'], datetime.datetime(2020, 3, 28))
+    assert len(list_events['items']) == 0
+
+    inserted_event = myCalendar.add_event(event, calendar_id=my_calendars['Reveil'])
+
+    list_events = myCalendar.get_events_from_day(my_calendars['Reveil'], datetime.datetime(2020, 3, 28))
+    assert len(list_events['items']) == 1
+    assert inserted_event == list_events['items'][0]
+
+    myCalendar.delete_event(inserted_event, calendar_id=my_calendars['Reveil'])
+
+
