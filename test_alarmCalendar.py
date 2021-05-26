@@ -10,10 +10,11 @@ alarm_calendar_name = 'Alarm'
 public_holiday_calendar_name = 'Public Holiday'
 personal_calendar_name = 'Personal'
 
+myCalendar.set_calendars(alarm_calendar=my_calendars['Reveil'],
+                         public_holiday_calendar=my_calendars['Jours Feries'],
+                         personal_calendar=my_calendars['Elise et Tom'])
+
 def test_get_events():
-    myCalendar.set_calendars(alarm_calendar=my_calendars['Reveil'],
-                             public_holiday_calendar=my_calendars['Jours Feries'],
-                             personal_calendar=my_calendars['Elise et Tom'])
 
     date1 = datetime.datetime(2020, 3, 24)
     events1 = myCalendar.get_events(date1)
@@ -61,9 +62,6 @@ def test_get_events():
 
 
 def test_alarm():
-    myCalendar.set_calendars(alarm_calendar=my_calendars['Reveil'],
-                             public_holiday_calendar=my_calendars['Jours Feries'],
-                             personal_calendar=my_calendars['Elise et Tom'])
 
     date1 = datetime.datetime(2020, 3, 24)
     is_alarm1, event1 = myCalendar.is_alarm_today(date1)
@@ -109,3 +107,21 @@ def test_alarm():
     is_alarm9, event9 = myCalendar.is_alarm_today(date9)
     assert is_alarm9 is True
     assert event9.title == '#force reveil'
+
+def test_force_alarm():
+
+    date1 = datetime.datetime(2020, 3, 16)
+
+    events_before = myCalendar.google_service.get_events_from_day(my_calendars['Reveil'], date1, reset_hour=True)
+    text_before = events_before['items'][0]['summary']
+
+    myCalendar.force_alarm(date1)
+
+    events_after = myCalendar.google_service.get_events_from_day(my_calendars['Reveil'], date1, reset_hour=True)
+    text_after = events_after['items'][0]['summary']
+
+    assert ' '.join(['#force', text_before]) == text_after
+
+    # Remove the added text
+    myCalendar.google_service.update_event(events_before['items'][0], my_calendars['Reveil'])
+

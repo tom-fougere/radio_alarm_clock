@@ -5,7 +5,7 @@ import logging
 OFF_STRING = '#off'
 FORCE_STRING = '#force'
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("radioAlarmLogger")
 
 class OnlineCalendar:
 
@@ -113,6 +113,22 @@ class OnlineCalendar:
         logger.debug('Sorted Events from Google calendars (%s): %s', today_datetime, sorted_events)
 
         return sorted_events
+
+    def force_alarm(self, current_datetime):
+        """
+        Force the alarm. Add #force at the beginning of the summary of the event in the Alarm Calendar
+        :param current_datetime: Current datetime
+        """
+        # Get events from 'alarm calendar'
+        events = self.google_service.get_events_from_day(self.alarm_calendar, current_datetime, reset_hour=True)
+
+        if len(events['items'][0]) > 0:
+            for i_event in events['items']:
+                i_event['summary'] = ' '.join([FORCE_STRING, i_event['summary']])
+                self.google_service.update_event(i_event, calendar_id=self.alarm_calendar)
+                logger.info('Add "%s" to all alarms')
+        else:
+            logger.warning('No possibility to force the alarm because there is none !')
 
 
 def sort_events(events_alarm_calendar, events_public_holiday_calendar, events_personal_calendar):

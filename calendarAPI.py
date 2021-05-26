@@ -211,7 +211,7 @@ class GoogleCalendarAPI:
         self.set_credentials(token_file=TOKEN_EVENTS_JSON_FILE, scopes=SCOPES_EVENTS)
         self.build_google_service_access()
 
-        # Delete event
+        # Update event
         self.google_service.events().update(calendarId=calendar_id,
                                             eventId=google_event['id'],
                                             body=google_event).execute()
