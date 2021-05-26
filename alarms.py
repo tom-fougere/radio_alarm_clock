@@ -1,98 +1,133 @@
-import datetime
+from datetime import timedelta
+import re
+import logging
+
+from events import Event
+
+
+logger = logging.getLogger("radioAlarmLogger")
 
 
 class Alarm:
-
-    applied_delay = 0
-    time_of_deactivation = 0
-
     def __init__(self):
-        # Activation
-        self.on_off = 0  # User set ON/OFF
-        self.active = 0  # Alarm is ringing?
+        self.event = Event([], 'no_calendar', 'no_name')
 
-        # Date/Time of activation
-        self.days = None  # Days of activation
-        self.time = None  # Time of activation (hour & minute)
+        self.title = ''
+        self.is_alarm = False
+        self.radio = 'nrj'
+        self.repetition = 10
+        self.alarms_repetition = []
 
-        # Sound
-        self.sound = None  # Sound active if alarm is active
+        self.active = True
+        self.ringing = False
 
-        # Options
-        self.isEphemeral = None  # Does the alarm be deleted after ringing?
-        self.delay_repetition = None  # Delay after alarm reactivation after snooze
+    def set_event(self, is_alarm, event):
 
-    def set_alarm(self, hour, minute, sound):
-        self.time = datetime.time(hour, minute)
-        self.days = [1, 2, 3, 4, 5, 6, 7]
-        self.isEphemeral = 0
-        self.delay_repetition = 5
-        self.sound = sound
+        self.is_alarm = is_alarm
+        self.event = event
 
-    def set_off(self):
-        self.on_off = 0
+        self.format_data()
+        self.set_alarm_repetition()
 
-    def set_on(self):
-        self.on_off = 1
+    def format_data(self):
 
-    def check_activation(self, current_daytime):
+        if self.event.kind == 'Hour':
+            self.title = "{} - {}:{:0>2d}".format(self.event.title, self.event.start.hour, self.event.start.minute)
 
-        # Time of the alarm
-        ring_time = add_minutes_to_time(self.time, Alarm.applied_delay)
-        # Current measured time
-        current_time = datetime.time(current_daytime.get_hour(), current_daytime.get_minute())
+            # Set radio
+            self.set_radio(extract_information_with_hashtag(self.event.description, "#radio"))
 
-        if self.on_off == 1:
-            # Check the current day is included in the days of alarm activation
-            if current_daytime.get_weekday() in self.days:
-                print("Alarm::Current Time %02d:%02d" % (current_daytime.get_hour(), current_daytime.get_minute()))
-                print("Alarm::Alarm Time %02d:%02d" % (ring_time.hour, ring_time.minute))
+            # Set repetition: Extract the digit of the repetition text
+            text_repetition = extract_information_with_hashtag(self.event.description, "#repetition")
+            digits_pattern = "([0-9]{1,2})"
+            digits_search = re.search(digits_pattern, text_repetition)
+            if len(text_repetition) > 0 and digits_search:
+                self.set_repetition(digits_search.group(1))
+            else:
+                logger.debug("There is no #repetition of no digits")
 
-                # Compare the current time and the alarm time (in case where sound is not playing)
-                if ring_time == current_time and self.sound.isplay() == 0:
-                    print("Alarm::Ring")
-                    # Active alarm
-                    self.active = 1
-                    # Time of deactivation in case of long activation (1h)
-                    Alarm.time_of_deactivation = add_minutes_to_time(current_time, 60)
-                    # Play sound
-                    self.sound.play()
+        else:
+            self.title = self.event.title
 
-        if self.active == 1:
-            # If current time is higher than the time of deactivation, force deactivation
-            if current_time > Alarm.time_of_deactivation:
-                print("Alarm::Force deactivation of the alarm")
-                self.deactivate()
+    def set_radio(self, radio_str):
+
+        if len(radio_str) > 0:
+            logger.info("Set radio from %s to %s", self.radio, radio_str)
+            self.radio = radio_str
+
+    def set_repetition(self, repetition_value):
+
+        if len(repetition_value) > 0:
+            logger.info("Set number of repetition from %s to %s", self.repetition, repetition_value)
+            self.repetition = int(repetition_value)
+
+    def is_ringing(self, current_datetime):
+        if self.event.start <= current_datetime <= self.event.end:
+            if self.active is True:
+                if self.ringing is False:
+                    if current_datetime.replace(second=0, microsecond=0) in self.alarms_repetition:
+                        self.ringing = True
+                        self.alarms_repetition.pop(0)  # Remove first alarm to avoid new alarm for the same datetime
+                        logger.info("Alarm must ring now")
+                    else:
+                        self.ringing = False
+            else:
+                self.ringing = False
+        else:
+            self.ringing = False
+
+        return self.ringing
 
     def snooze(self):
-        print("Alarm::Snooze")
-        # Stop sound
-        self.sound.stop()
-        # Add delay
-        Alarm.applied_delay += self.delay_repetition
+        logger.info('Snooze !')
+        self.ringing = False
 
-    def deactivate(self):
-        print("Alarm::Deactivation")
-        # Reset delay
-        Alarm.applied_delay = 0
+    def stop_alarm(self):
+        logger.info('Stop Alarm !')
+        self.active = False
 
-        if self.sound.isplay() == 1:
-            # Stop Sound
-            self.sound.stop()
+    def set_alarm_repetition(self):
 
-        # Deactivate alarm
-        self.active = 0
+        if self.is_alarm is True:
+            self.alarms_repetition = []  # Reset alarms
 
-    def set_days(self, days):
-        self.days = days
+            repet_datetime = self.event.start
+            while repet_datetime < self.event.end:
+                self.alarms_repetition.append(repet_datetime)
+                repet_datetime += timedelta(minutes=self.repetition)
 
-    def set_time(self, hour, minute):
-        self.deactivate()
-        self.time = datetime.time(hour, minute)
+    def clear_event(self):
+        logger.debug("Clear event")
+        self.event = Event([], 'no_calendar', 'no_name')
+
+        self.is_alarm = False
+        self.title = ''
+        self.radio = 'nrj'
+        self.repetition = 10
+        self.alarms_repetition = []
+
+        self.active = True
+        self.ringing = False
 
 
-def add_minutes_to_time(time, added_minutes):
-    full_date = datetime.datetime(100, 1, 1, time.hour, time.minute, time.second)
-    # full_date = full_date + datetime.timedelta(minutes = added_minutes)
-    full_date = full_date + datetime.timedelta(added_minutes)
-    return full_date.time()
+def extract_information_with_hashtag(full_text, hashtag):
+    """
+    Extract text after a defined hashtag
+    :param full_text: Text with hashtag and needed information, string
+    :param hashtag: Hashtag to search, string, example: #radio
+    :return:
+        - information: Information after a hashtag
+    """
+
+    # Add # at the end
+    full_text = ''.join([full_text, '#'])
+
+    # Search hashtag key
+    index_defined_hashtag = full_text.find(hashtag)
+    index_next_hashtag = full_text.find('#', index_defined_hashtag + 1)
+
+    # Extract information and remove '\n' character
+    information = full_text[index_defined_hashtag + len(hashtag) + 1: index_next_hashtag]
+    information = information.rstrip()
+
+    return information
