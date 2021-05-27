@@ -1,0 +1,4 @@
+{"nrj": "http://cdn.nrjaudio.fm/audio1/fr/30001/mp3_128.mp3?origine=fluxradios",
+"fun": "http://icecast.funradio.fr/fun-1-44-128?listen=webCwsBCggNCQgLDQUGBAcGBg",
+"virgin": "http://stream.virginradio.fr/virgin.mp3",
+"mp3": "jamiroquai-runaway.mp3"}

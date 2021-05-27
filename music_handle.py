@@ -6,7 +6,8 @@ import os
 from documents.rw_dict import *
 
 
-RADIO_URL_FILE = 'documents/radio_url.txt'
+RADIO_URL_FILE = 'musics/radio_url.txt'
+MP3_FOLDER = 'musics/'
 MP3_KEY = 'mp3'
 logger = logging.getLogger("radioAlarmLogger")
 
@@ -14,14 +15,22 @@ logger = logging.getLogger("radioAlarmLogger")
 class Radio:
     def __init__(self):
         self.radio = ''
-        self.url = ''
         self.on = False
 
-    def turn_on(self):
+    def turn_on(self, is_internet_ok=True):
         """
         Turn on the radio
         """
-        os.system(' '.join(["mpg321", self.url, '&']))
+        radio_url_dict = read_dict_file(RADIO_URL_FILE)
+
+        if is_internet_ok is True:
+            music_link = radio_url_dict[self.radio.lower()]
+        else:
+            logger.warning('Internet is down: MP3 is used for the music')
+            music_link = ''.join([MP3_FOLDER, radio_url_dict[MP3_KEY]])
+
+        # Turn on the music
+        os.system(' '.join(["mpg321", music_link, '&']))
         self.on = True
 
     def turn_off(self):
@@ -46,17 +55,8 @@ class Radio:
         if radio.lower() in radio_url_dict.keys():
             logger.debug('The radio url is changed')
             self.radio = radio.lower()
-            self.url = radio_url_dict[radio.lower()]
         else:
             logger.warning('The radio doesn\'t exist in the dictionary')
 
-    def set_mp3_music(self):
-        """
-        Set mp3 file instead of radio url
-        """
-
-        logger.debug('The radio url is changed')
-        radio_url_dict = read_dict_file(RADIO_URL_FILE)
-        self.url = radio_url_dict[MP3_KEY]
 
 

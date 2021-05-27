@@ -17,6 +17,16 @@ def test_turn_on_off():
     my_radio.turn_off()
     assert my_radio.on is False
 
+def test_turn_on_off_internet_down():
+    assert my_radio.on is False
+
+    my_radio.turn_on(is_internet_ok=False)
+    assert my_radio.on is True
+
+    time.sleep(2)
+    my_radio.turn_off()
+    assert my_radio.on is False
+
 def test_set_radio_url():
     my_radio.set_radio_url('fun')
 
@@ -26,9 +36,3 @@ def test_set_radio_url_wrong():
     my_radio.set_radio_url('url_non_connu')
 
     assert my_radio.radio == 'nrj'
-
-def test_set_mp3():
-    my_radio.set_radio_url('mp3')
-
-    assert my_radio.radio == 'mp3'
-    assert my_radio.url == '/home/pi/BlackM.mp3'
