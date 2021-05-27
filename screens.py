@@ -1,4 +1,5 @@
 from PIL import ImageDraw, Image, ImageFont
+from utils import get_value_from_dict
 
 MARGIN_Y = 5
 MARGIN_X = 5
@@ -16,6 +17,13 @@ FONT_BOLD = 'fonts/piboto/Piboto-Bold.ttf'
 FONT_THIN = 'fonts/piboto/Piboto-Thin.ttf'
 FONT_LIGHT = 'fonts/piboto/Piboto-Light.ttf'
 
+ICON_WIFI_ON = 'icons/wifi_on.png'
+ICON_WIFI_OFF = 'icons/wifi_off.png'
+ICON_ALARM = 'icons/alarm.png'
+ICON_CALENDAR_TODAY = 'icons/calendar_today.png'
+ICON_CALENDAR_TOMORROW = 'icons/calendar_tomorrow.png'
+ICON_CALENDAR_INTERVENTION = 'icons/calendar_intervention.png'
+
 
 class Screen2in13:
     def __init__(self, size):
@@ -31,14 +39,16 @@ class Screen2in13:
         self.event_today = ''
         self.event_tomorrow = ''
         self.alarm = False
+        self.calendar_intervention = False
 
-    def set_params(self, datetime, event_today, event_tomorrow, is_wifi_on=False, is_alarm_on=True):
+    def set_params(self, datetime, event_today, event_tomorrow, notifications):
 
         nb_char = 20
 
         # Set parameters
-        self.wifi = is_wifi_on
-        self.alarm = is_alarm_on
+        self.wifi = get_value_from_dict(notifications, 'wifi', False)
+        self.alarm = get_value_from_dict(notifications, 'alarm', False)
+        self.calendar_intervention = get_value_from_dict(notifications, 'calendar_intervention', False)
         self.hour = str(datetime.hour)
         self.minute = str(datetime.minute).zfill(2)
         self.week_day = DAYS[datetime.isoweekday() - 1]
@@ -100,17 +110,23 @@ class Screen2in13:
 
         # Wifi
         if self.wifi is True:
-            bmp_wifi = Image.open('icons/wifi_on.png')
+            bmp_wifi = Image.open(ICON_WIFI_ON)
         else:
-            bmp_wifi = Image.open('icons/wifi_off.png')
+            bmp_wifi = Image.open(ICON_WIFI_OFF)
         # bmp_wifi = bmp_wifi_on.resize((24, 26))
         self.image.paste(bmp_wifi, (MARGIN_X, 0 + MARGIN_Y))
 
         # Alarm
         if self.alarm is True:
-            bmp_alarm = Image.open('icons/alarm.png')
+            bmp_alarm = Image.open(ICON_ALARM)
             # bmp_alarm = bmp_alarm.resize((24, 26))
             self.image.paste(bmp_alarm, (MARGIN_X, 30 + MARGIN_Y))
+
+        # Calendar intervention
+        if self.calendar_intervention is True:
+            bmp_alarm = Image.open(ICON_CALENDAR_INTERVENTION)
+            # bmp_alarm = bmp_alarm.resize((24, 26))
+            self.image.paste(bmp_alarm, (MARGIN_X, 60 + MARGIN_Y))
 
     def draw_events(self):
 
@@ -119,7 +135,7 @@ class Screen2in13:
         event_font = ImageFont.truetype(FONT_THIN, 13)
 
         # Today Event
-        bmp_calendar_today = Image.open('icons/calendar_today.png')
+        bmp_calendar_today = Image.open(ICON_CALENDAR_TODAY)
         event_text = self.event_today
         self.image.paste(bmp_calendar_today, (MAX_X - bmp_calendar_size[0] - margin_calendar_icon,  MAX_Y - 2 * bmp_calendar_size[1]))
         x_position = MAX_X - get_font_size(self.screen, event_text, event_font)[0]\
@@ -128,7 +144,7 @@ class Screen2in13:
         self.screen.text((x_position, y_position), event_text, font=event_font, fill = 0)
 
         # Tomorrow Event
-        bmp_calendar_tomorrow = Image.open('icons/calendar_tomorrow.png')
+        bmp_calendar_tomorrow = Image.open(ICON_CALENDAR_TOMORROW)
         event_text = self.event_tomorrow
         self.image.paste(bmp_calendar_tomorrow, (MAX_X - bmp_calendar_size[0] - margin_calendar_icon, MAX_Y - bmp_calendar_size[1]))
         x_position = MAX_X - get_font_size(self.screen, event_text, event_font)[0]\

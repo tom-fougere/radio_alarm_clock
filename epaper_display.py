@@ -14,7 +14,7 @@ class EPaper:
         self.hour = 0
         self.minute = 0
 
-    def update(self, one_datetime, event_today, event_tomorrow, is_wifi_on=False, is_alarm_on=True, force_update=False):
+    def update(self, one_datetime, event_today, event_tomorrow, notifications, force_update=False):
         """
         Update the e-paper (following the datetime)
         There is a partial update at each minute
@@ -40,7 +40,7 @@ class EPaper:
                 self.set_partial_update()
 
             # Display new screen
-            self.set_new_screen(one_datetime, event_today, event_tomorrow, is_wifi_on=is_wifi_on, is_alarm_on=is_alarm_on)
+            self.set_new_screen(one_datetime, event_today, event_tomorrow, notifications)
             # self.sleep()
 
     def need_full_update(self, one_datetime, force_update=False):
@@ -89,7 +89,7 @@ class EPaper:
         self.epd.init(self.epd.lut_partial_update)
         self.is_full_updated = False
 
-    def set_new_screen(self, one_datetime, event_today, event_tomorrow, is_wifi_on=False, is_alarm_on=False):
+    def set_new_screen(self, one_datetime, event_today, event_tomorrow, notifications):
         """
         Define the new screen to display
 
@@ -100,7 +100,7 @@ class EPaper:
         :param is_alarm_on: True if alarm is scheduled (for bell-icon display)
         """
         current_screen = Screen2in13((self.epd.height, self.epd.width))
-        current_screen.set_params(one_datetime, event_today, event_tomorrow, is_wifi_on=is_wifi_on, is_alarm_on=is_alarm_on)
+        current_screen.set_params(one_datetime, event_today, event_tomorrow, notifications)
         my_screen = current_screen.get_screen()
         self.epd.display(self.epd.getbuffer(my_screen))
 
