@@ -21,10 +21,10 @@ class Alarm:
         self.active = True
         self.ringing = False
 
-    def set_event(self, is_alarm, event):
+    def set_event(self, event):
 
-        self.is_alarm = is_alarm
         self.event = event
+        self.is_alarm = event.is_alarm
 
         self.format_data()
         self.set_alarm_repetition()
@@ -62,7 +62,7 @@ class Alarm:
             self.repetition = int(repetition_value)
 
     def is_ringing(self, current_datetime):
-        if self.event.start <= current_datetime <= self.event.end:
+        if self.is_alarm is True and self.event.start <= current_datetime <= self.event.end:
             if self.active is True:
                 if self.ringing is False:
                     if current_datetime.replace(second=0, microsecond=0) in self.alarms_repetition:
