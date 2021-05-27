@@ -42,7 +42,12 @@ def stop_alarm_button():
 
 def start_music():
     logger.info('Button - Start music !')
-    myRadio.turn_on()
+
+    # Check internet connexion
+    is_internet_ok = internetChecker.check_connection_once()
+
+    # Turn on the music
+    myRadio.turn_on(is_internet_ok=is_internet_ok)
 
 
 def snooze_alarm_button():
@@ -86,10 +91,10 @@ if __name__ == '__main__':
     previous_datetime = myDatetime.get_datetime() - timedelta(hours=1) - offset_datetime_debug
 
     while True:
+        sleep(2)
 
         # Check internet connexion
         is_internet_ok = internetChecker.check_connection_once()
-        sleep(2)
 
         # Get the current datetime
         myDatetime.update()
@@ -109,6 +114,9 @@ if __name__ == '__main__':
             # Set event
             myAlarm.set_event(events_today[0])
 
+            # Set radio/music
+            myRadio.set_radio_url(myAlarm.radio)
+
         # Define notifications (wifi icon, alarm icon, intervention icon)
         myNotifications.set_wifi(is_internet_ok)
         myNotifications.define_calendar_intervention_notif(events_today)
@@ -117,12 +125,6 @@ if __name__ == '__main__':
 
         # Display
         myDisplay.update(current_datetime, events_today[0], events_tomorrow[0], notifications)
-
-        # # Set radio/music
-        # if is_internet_ok is True:
-        #     myRadio.set_radio_url(myAlarm.radio)
-        # else:
-        #     myRadio.set_radio_url('mp3')
 
         # Start music in case of alarm triggered
         if myAlarm.is_ringing(current_datetime) and myRadio.on is False:

@@ -112,18 +112,12 @@ def sort_events(events_alarm_calendar, events_public_holiday_calendar, events_pe
             else:
                 index += 1
         elif priority == 2:
-            if event.kind != 'None' and event.is_alarm == True:
+            if event.kind != 'None':
                 sorted_events.append(event)
                 full_list.pop(index)
             else:
                 index += 1
         elif priority == 3:
-            if event.kind != 'None' and event.is_alarm == False:
-                sorted_events.append(event)
-                full_list.pop(index)
-            else:
-                index += 1
-        elif priority == 4:
             sorted_events.append(event)
             full_list.pop(index)
 
