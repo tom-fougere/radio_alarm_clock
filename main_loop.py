@@ -1,16 +1,18 @@
 # External packages
 import logging.config
+from datetime import datetime, timedelta
+from time import sleep
 
 # Personal packages
 from AlarmCalendar import OnlineCalendar
 from dateTime import ReliableDate
 from documents.rw_dict import *
 from alarms import Alarm
-from events import should_the_bell_be_turned_on
 from epaper_display import EPaper
 from gpio_button import Button
 from InternetCheck import InternetChecker
 from music_handle import Radio
+from notifications import Notifications
 
 logging.config.fileConfig(fname='logging.conf', disable_existing_loggers=False)
 
@@ -23,12 +25,14 @@ myDatetime = ReliableDate()
 myDisplay = EPaper()
 myAlarm = Alarm()
 myRadio = Radio()
+myNotifications = Notifications()
 
 alarmButtonStop = Button(5)
 alarmButtonSnooze = Button(6)
 lightButtonIntensity = Button(23)
 
 light_intensity = 0
+offset_datetime_debug = timedelta(days=3)
 
 def stop_alarm_button():
     logger.info('Button - Stop alarm !')
@@ -75,39 +79,54 @@ if __name__ == '__main__':
     alarmButtonSnooze.set_action(snooze_alarm_button, start_music)
     lightButtonIntensity.set_action(change_light_intensity)
 
+    events_today = []
+    events_tomorrow = []
+
+    myDatetime.update()
+    previous_datetime = myDatetime.get_datetime() - timedelta(hours=1) - offset_datetime_debug
+
     while True:
 
         # Check internet connexion
         is_internet_ok = internetChecker.check_connection_once()
+        sleep(2)
 
         # Get the current datetime
         myDatetime.update()
-        current_datetime = myDatetime.get_datetime()
+        current_datetime = myDatetime.get_datetime() - offset_datetime_debug
         print(myDatetime.get_datetime_string())
 
-        # Search events in calendar
-        alarm_today, event_today = myCalendar.is_alarm_today(current_datetime, reset_hour=True)
-        alarm_tomorrow, event_tomorrow = myCalendar.is_alarm_tomorrow(current_datetime)
+        # Update events and alarm every hour
+        if current_datetime >= (previous_datetime + timedelta(hours=1)):
 
-        # Set event
-        myAlarm.set_event(alarm_today, event_today)
+            # Update previous datetime
+            previous_datetime = current_datetime
 
-        # Set radio/music
-        if is_internet_ok is True:
-            myRadio.set_radio_url(myAlarm.radio)
-        else:
-            myRadio.set_radio_url('mp3')
+            # Search events in calendar
+            events_today = myCalendar.get_events(current_datetime, reset_hour=True)
+            events_tomorrow = myCalendar.get_events(current_datetime + timedelta(days=1), reset_hour=True)
+
+            # Set event
+            myAlarm.set_event(events_today[0])
+
+        # Define notifications (wifi icon, alarm icon, intervention icon)
+        myNotifications.set_wifi(is_internet_ok)
+        myNotifications.define_calendar_intervention_notif(events_today)
+        myNotifications.define_alarm_notif(current_datetime, events_today[0], events_tomorrow[0])
+        notifications = myNotifications.get_values()
+
+        # Display
+        myDisplay.update(current_datetime, events_today[0], events_tomorrow[0], notifications)
+
+        # # Set radio/music
+        # if is_internet_ok is True:
+        #     myRadio.set_radio_url(myAlarm.radio)
+        # else:
+        #     myRadio.set_radio_url('mp3')
 
         # Start music in case of alarm triggered
         if myAlarm.is_ringing(current_datetime) and myRadio.on is False:
             logger.info('Start radio / music !')
             myRadio.turn_on()
 
-        # Select the bell icon following the current datetime (change to tomorrow after the alarm is passed)
-        display_bell_icon = should_the_bell_be_turned_on(current_datetime, event_today,
-                                                         alarm_today, alarm_tomorrow, limit_hour=14)
-
-        # Display datetime in the screen
-        myDisplay.update(current_datetime, event_today, event_tomorrow,
-                         is_wifi_on=is_internet_ok, is_alarm_on=display_bell_icon)
 
