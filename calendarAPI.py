@@ -5,12 +5,17 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
+import logging
+
+logger = logging.getLogger("radioAlarmLogger")
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+SCOPES_DEFAULT = ['https://www.googleapis.com/auth/calendar.readonly']
+SCOPES_EVENTS = ['https://www.googleapis.com/auth/calendar.events']
 
 CREDENTIALS_FILE = 'documents/credentials.json'
 TOKEN_JSON_FILE = 'documents/token.json'
+TOKEN_EVENTS_JSON_FILE = 'documents/token_event.json'
 
 
 class GoogleCalendarAPI:
@@ -21,25 +26,41 @@ class GoogleCalendarAPI:
 
     def init_calendar_service(self):
         """
-        Authorizing requests to the Google Calendar API
+        Initialize the access to the Google Calendar API
+        """
+        self.set_credentials()
+        self.build_google_service_access()
+
+    def set_credentials(self, token_file=TOKEN_JSON_FILE, scopes=SCOPES_DEFAULT):
+        """
+        Set the credential to access Google Calendar API
+        :param token_file: token of the Google Calendar API, string (path of file)
+        :param scopes: scope 'authorization) of the Google Calendar API, string
         """
         self.credentials = None
         # The file token.json stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
         # time.
-        if os.path.exists(TOKEN_JSON_FILE):
-            self.credentials = Credentials.from_authorized_user_file(TOKEN_JSON_FILE, SCOPES)
+        if os.path.exists(token_file):
+            self.credentials = Credentials.from_authorized_user_file(token_file, scopes)
         # If there are no (valid) credentials available, let the user log in.
         if not self.credentials or not self.credentials.valid:
+            logger.warning('Google Calendar API Credentials are no valid !')
             if self.credentials and self.credentials.expired and self.credentials.refresh_token:
+                logger.warning('Google Calendar API Credentials expired, refresh token !')
                 self.credentials.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
+                logger.error('Google Calendar API Window app needed !')
+                flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, scopes)
                 self.credentials = flow.run_local_server(port=0)
             # Save the credentials for the next run
-            with open(TOKEN_JSON_FILE, 'w') as token:
+            with open(token_file, 'w') as token:
                 token.write(self.credentials.to_json())
 
+    def build_google_service_access(self):
+        """
+        Authorizing requests to the Google Calendar API
+        """
         self.google_service = build('calendar', 'v3', credentials=self.credentials)
 
     def get_list_calendars_name(self):
@@ -123,3 +144,79 @@ class GoogleCalendarAPI:
                                                    timeMax=time_max,
                                                    timeZone=x).execute()
         return events
+
+    def get_event(self, calendar_id, event_id):
+        """
+        Get event in specified calendar
+        :param calendar_id: ID of the calendar
+        :param event_id: ID of the Event
+        :return:
+            - event: google calendar event
+        """
+
+        event = self.google_service.events().get(calendarId=calendar_id, eventId=event_id).execute()
+
+        return event
+
+    def add_event(self, event, calendar_id):
+        """
+        Insert event in specified calendar
+        :param event: Event to add to the calendar, dict
+        :param calendar_id: ID of the calendar
+        :return:
+            - inserted_event: google calendar event
+        """
+
+        # Change accesses to Google Calendar API in order to write events
+        self.set_credentials(token_file=TOKEN_EVENTS_JSON_FILE, scopes=SCOPES_EVENTS)
+        self.build_google_service_access()
+
+        # Write event
+        inserted_event = self.google_service.events().insert(calendarId=calendar_id, body=event).execute()
+
+        # Put back the default access to Google Calendar API
+        self.init_calendar_service()
+
+        logger.info('Event added to the calendar (event: %s | calendar-id: %s)', event, calendar_id)
+
+        return inserted_event
+
+    def delete_event(self, google_event, calendar_id):
+        """
+        Delete event in specified calendar
+        :param google_event: Event to delete to the calendar, google event
+        :param calendar_id: ID of the calendar
+        """
+
+        # Change accesses to Google Calendar API in order to write events
+        self.set_credentials(token_file=TOKEN_EVENTS_JSON_FILE, scopes=SCOPES_EVENTS)
+        self.build_google_service_access()
+
+        # Delete event
+        self.google_service.events().delete(calendarId=calendar_id, eventId=google_event['id']).execute()
+
+        # Put back the default access to Google Calendar API
+        self.init_calendar_service()
+
+        logger.info('Event deleted to the calendar (event: %s | calendar-id: %s)', google_event, calendar_id)
+
+    def update_event(self, google_event, calendar_id):
+        """
+        Update event in specified calendar
+        :param google_event: Event to update to the calendar, google event
+        :param calendar_id: ID of the calendar
+        """
+
+        # Change accesses to Google Calendar API in order to write events
+        self.set_credentials(token_file=TOKEN_EVENTS_JSON_FILE, scopes=SCOPES_EVENTS)
+        self.build_google_service_access()
+
+        # Update event
+        self.google_service.events().update(calendarId=calendar_id,
+                                            eventId=google_event['id'],
+                                            body=google_event).execute()
+
+        # Put back the default access to Google Calendar API
+        self.init_calendar_service()
+
+        logger.info('Event updated to the calendar (event: %s | calendar-id: %s)', google_event, calendar_id)
