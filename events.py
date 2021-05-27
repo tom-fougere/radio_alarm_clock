@@ -1,20 +1,25 @@
 from datetime import datetime
+from utils import get_value_from_dict
 
 import logging
 
+
+OFF_STRING = '#off'
+FORCE_STRING = '#force'
 
 logger = logging.getLogger("radioAlarmLogger")
 
 
 class Event:
-    def __init__(self, calendar_item, calendar_name, name):
+    def __init__(self, calendar_item, calendar_name, is_alarm=False):
 
         self.calendar_name = calendar_name
-        self.name = name
+        self.is_alarm = is_alarm
 
         if len(calendar_item) == 0:
             self.kind = 'None'  # 'None', 'Hour', 'Day'
             self.title = ''
+            self.is_alarm = False  # Force to False in case of no event
         else:
             self.id = get_value_from_dict(calendar_item, 'id')
             self.title = get_value_from_dict(calendar_item, 'summary', '')
@@ -32,7 +37,7 @@ class Event:
     def __eq__(self, other):
         if isinstance(other, Event):
             return self.calendar_name == other.calendar_name and\
-                   self.name == other.name and\
+                   self.is_alarm == other.is_alarm and\
                    self.kind == other.kind and\
                    self.title == other.title and\
                    self.description == other.description and\
@@ -43,72 +48,87 @@ class Event:
 
     def set_params(self, parameters):
 
-        attributes = ['calendar_name', 'name', 'kind', 'title', 'id', 'description', 'start', 'end']
+        attributes = ['calendar_name', 'is_alarm', 'kind', 'title', 'id', 'description', 'start', 'end']
         for attr in attributes:
             if attr in parameters:
                 setattr(self, attr, parameters[attr])
 
 
-def convert_google_events_to_calendar_events(google_events, name):
+def convert_google_events_to_calendar_events(google_events, is_alarm=False):
     """
     Convert google events into calendar events
     :param google_events: google events, format of google calendar API event
-    :param name: Chosen name for the calendarS, String
+    :param is_alarm: is the current an alarm ? String
     :return:
         - list_events: List of Event(s)
     """
 
     list_events = []
     for current_event in google_events['items']:
-        my_calendar_event = Event(current_event, google_events['summary'], name=name)
+        my_calendar_event = Event(current_event, google_events['summary'], is_alarm=is_alarm)
         list_events.append(my_calendar_event)
 
     # Add a No-Event to the list in case of no event
     if len(google_events['items'])  == 0:
-        list_events.append(Event([], google_events['summary'], name=name))
+        list_events.append(Event([], google_events['summary'], is_alarm=False))
 
     return list_events
 
 
-def get_value_from_dict(item_dict, wanted_field, default_value=''):
+
+def sort_events(events_alarm_calendar, events_public_holiday_calendar, events_personal_calendar):
     """
-    Get the value from a dictionary selecting the field. A default value is set if the field don't exist
-    :param item_dict: dictionary to watch, dict
-    :param wanted_field: field to search in the dictionary, string
-    :param default_value: default value if the wanted field don't exist
+    Sort events from 3 google calendars (alarm, public holiday and personal)
+    order: #force, #off, public holiday, alarm, personal
+    :param events_alarm_calendar: List of Events from the alarm calendar, Google service "Event"
+    :param events_public_holiday_calendar: List of Events from the public holiday calendar, Google service "Event"
+    :param events_personal_calendar: List of Events from the personal calendar, Google service "Event"
     :return:
-        - value: value of the dictionary with the wanted field
+        - list of sorted CalendarEvent
     """
 
-    value = default_value
-    if wanted_field in item_dict:
-        value = item_dict[wanted_field]
+    events_alarm = convert_google_events_to_calendar_events(events_alarm_calendar, is_alarm=True)
+    events_public_holiday = convert_google_events_to_calendar_events(events_public_holiday_calendar, is_alarm=False)
+    events_personal = convert_google_events_to_calendar_events(events_personal_calendar, is_alarm=False)
 
-    return value
+    full_list = events_public_holiday + events_alarm + events_personal
+    sorted_events = []
 
+    priority = 0
+    index = 0
+    while len(full_list) > 0:
+        event = full_list[index]
 
-def should_the_bell_be_turned_on(current_datetime, event_today, alarm_today, alarm_tomorrow, limit_hour=14):
-    """
-    In function of the context (datetime, today event and alarms), return flag for the bell display
-    :param current_datetime: the current datetime (to compare with the limit_hour
-    :param event_today: Event of the current datetime (today)
-    :param alarm_today: Flag/Alarm of the current day
-    :param alarm_tomorrow: Flag/Alarm of the next day
-    :param limit_hour: Hour to switch between the alarm of the current day to the next day
-    :return:
-        - Flag for the bell displaying, boolean
-    """
+        if priority == 0:
+            if event.title.lower().find(FORCE_STRING)>=0:  # FORCE
+                sorted_events.append(event)
+                full_list.pop(index)
+            else:
+                index += 1
+        elif priority == 1:
+            if event.title.lower().find(OFF_STRING) >= 0:  # OFF
+                sorted_events.append(event)
+                full_list.pop(index)
+            else:
+                index += 1
+        elif priority == 2:
+            if event.kind != 'None' and event.is_alarm == True:
+                sorted_events.append(event)
+                full_list.pop(index)
+            else:
+                index += 1
+        elif priority == 3:
+            if event.kind != 'None' and event.is_alarm == False:
+                sorted_events.append(event)
+                full_list.pop(index)
+            else:
+                index += 1
+        elif priority == 4:
+            sorted_events.append(event)
+            full_list.pop(index)
 
-    if event_today.kind == 'Hour':
-        if current_datetime <= event_today.end:
-            display_bell_icon = alarm_today
-        else:
-            display_bell_icon = alarm_tomorrow
-    else:
-        if current_datetime < datetime(current_datetime.year, current_datetime.month, current_datetime.day,
-                                       hour=limit_hour, minute=0, second=0):
-            display_bell_icon = alarm_today
-        else:
-            display_bell_icon = alarm_tomorrow
+        if index >= len(full_list):
+            priority +=1
+            index = 0
 
-    return display_bell_icon
+    return sorted_events
