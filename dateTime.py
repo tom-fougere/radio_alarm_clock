@@ -149,7 +149,7 @@ class ReliableDate(CurrentDate):
             logger.info('Use of NTP datetime')
         except:
             self.current_datetime = self.os_date.get_datetime()
-            logger.info('Use of OS datetime')
+            logger.warning('Use of OS datetime')
 
     def is_consistent_datetime(self):
         """

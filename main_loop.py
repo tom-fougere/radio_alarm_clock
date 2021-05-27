@@ -1,12 +1,12 @@
 # External packages
 import logging.config
-from datetime import datetime, timedelta
 
 # Personal packages
 from AlarmCalendar import OnlineCalendar
 from dateTime import ReliableDate
 from documents.rw_dict import *
-from events import Alarm
+from alarms import Alarm
+from events import should_the_bell_be_turned_on
 from epaper_display import EPaper
 from gpio_button import Button
 from InternetCheck import InternetChecker
@@ -36,15 +36,21 @@ def stop_alarm_button():
     myRadio.turn_off()
 
 
+def start_music():
+    logger.info('Button - Start music !')
+    myRadio.turn_on()
+
+
 def snooze_alarm_button():
     logger.info('Button - Snooze alarm !')
     myAlarm.snooze()
     myRadio.turn_off()
 
 
-def start_music():
-    logger.info('Button - Start music !')
-    myRadio.turn_on()
+def force_alarm():
+    logger.info('Button - Force alarm !')
+    dt = myDatetime.get_datetime()
+    myCalendar.force_alarm(dt)
 
 
 def change_light_intensity():
@@ -65,8 +71,8 @@ if __name__ == '__main__':
     is_internet_ok = internetChecker.is_connected()
 
     # Set button action
-    alarmButtonStop.set_action(stop_alarm_button, start_music)
-    alarmButtonSnooze.set_action(snooze_alarm_button)
+    alarmButtonStop.set_action(stop_alarm_button, force_alarm)
+    alarmButtonSnooze.set_action(snooze_alarm_button, start_music)
     lightButtonIntensity.set_action(change_light_intensity)
 
     while True:
@@ -76,7 +82,7 @@ if __name__ == '__main__':
 
         # Get the current datetime
         myDatetime.update()
-        current_datetime = myDatetime.get_datetime() - timedelta(days=1, hours=7, minutes=32)
+        current_datetime = myDatetime.get_datetime()
         print(myDatetime.get_datetime_string())
 
         # Search events in calendar
@@ -98,26 +104,10 @@ if __name__ == '__main__':
             myRadio.turn_on()
 
         # Select the bell icon following the current datetime (change to tomorrow after the alarm is passed)
-        if event_today.kind != 'Hour' and current_datetime <= event_today.end:
-            display_bell_icon = alarm_today
-        else:
-            display_bell_icon = alarm_tomorrow
-
-        # Select the bell icon following the current datetime (change to tomorrow after the alarm is passed)
-        if event_today.kind == 'Hour':
-            if current_datetime <= event_today.end:
-                display_bell_icon = alarm_today
-            else:
-                display_bell_icon = alarm_tomorrow
-        else:
-            if current_datetime < datetime(current_datetime.year, current_datetime.month, current_datetime.day,
-                                           hour=14, minute=0, second=0):
-                display_bell_icon = alarm_today
-            else:
-                display_bell_icon = alarm_tomorrow
+        display_bell_icon = should_the_bell_be_turned_on(current_datetime, event_today,
+                                                         alarm_today, alarm_tomorrow, limit_hour=14)
 
         # Display datetime in the screen
         myDisplay.update(current_datetime, event_today, event_tomorrow,
                          is_wifi_on=is_internet_ok, is_alarm_on=display_bell_icon)
 
-        
