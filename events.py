@@ -16,11 +16,13 @@ class Event:
         self.calendar_name = calendar_name
         self.is_alarm = is_alarm
 
-        if len(calendar_item) == 0:
-            self.kind = 'None'  # 'None', 'Hour', 'Day'
-            self.title = ''
-            self.is_alarm = False  # Force to False in case of no event
-        else:
+        self.kind = 'None'  # 'None', 'Hour', 'Day'
+        self.title = ''
+        self.description = ''
+        self.start = datetime.min
+        self.end = datetime.min
+
+        if len(calendar_item) > 0:
             self.id = get_value_from_dict(calendar_item, 'id')
             self.title = get_value_from_dict(calendar_item, 'summary', '')
             self.description = get_value_from_dict(calendar_item, 'description', '')
@@ -33,6 +35,8 @@ class Event:
                 self.kind = 'Day'
                 self.start = datetime.strptime(calendar_item['start']['date'], '%Y-%m-%d').replace(tzinfo=None)
                 self.end = datetime.strptime(calendar_item['end']['date'], '%Y-%m-%d').replace(tzinfo=None)
+        else:
+            self.is_alarm = False  # Force to False in case of no event
 
     def __eq__(self, other):
         if isinstance(other, Event):

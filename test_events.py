@@ -22,12 +22,9 @@ def test_no_event():
     assert calendar_event.calendar_name == 'test'
     assert calendar_event.is_alarm == False
     assert calendar_event.title == ''
-
-    count_field = 0
-    for field in ['start', 'end', 'description', 'id']:
-        if hasattr(calendar_event, field):
-            count_field += 1
-    assert count_field == 0
+    assert calendar_event.description == ''
+    assert calendar_event.start == datetime.datetime.min
+    assert calendar_event.end == datetime.datetime.min
 
 def test_event_hour():
 
@@ -50,11 +47,6 @@ def test_event_hour():
     assert calendar_event.start == datetime.datetime(2021, 5, 25, 10, 51, 0)
     assert calendar_event.end == datetime.datetime(2021, 5, 25, 11, 51, 0)
 
-    count_field = 0
-    for field in ['start', 'end', 'title', 'description', 'id']:
-        if hasattr(calendar_event, field):
-            count_field += 1
-    assert count_field == 5
 
 def test_event_fullday():
 
@@ -118,30 +110,29 @@ def test_event_set_params():
     assert calendar_event.is_alarm == False
     assert calendar_event.title == ''
 
-    count_field = 0
-    for field in ['start', 'end', 'description', 'id']:
-        if hasattr(calendar_event, field):
-            count_field += 1
-    assert count_field == 0
-
     # Set params
     parameters = dict()
     parameters['title'] = 'new title'
+    parameters['calendar_name'] = 'new calendar name'
+    parameters['description'] = 'new description'
     parameters['start'] = 'new start'
+    parameters['end'] = 'new end'
     parameters['id'] = 'new id'
     parameters['is_alarm'] = True
+    parameters['no_attribute'] = 'no_attribute'
+
     calendar_event.set_params(parameters)
 
-    count_field = 0
-    for field in ['start', 'end', 'description', 'id']:
-        if hasattr(calendar_event, field):
-            count_field += 1
-    assert count_field == 2
-
+    assert calendar_event.kind == 'None'
+    assert calendar_event.calendar_name == 'new calendar name'
     assert calendar_event.is_alarm == True
-    assert calendar_event.title == "new title"
-    assert calendar_event.start == "new start"
+    assert calendar_event.title == 'new title'
+    assert calendar_event.description == 'new description'
+    assert calendar_event.start == 'new start'
+    assert calendar_event.end == 'new end'
     assert calendar_event.id == "new id"
+
+    assert hasattr(calendar_event, 'no_attribute') is False
 
 
 #################################################
