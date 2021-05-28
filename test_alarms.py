@@ -196,6 +196,49 @@ def test_snooze_ringing():
     assert alarm_is_ringing is True
     assert my_alarm.active is True
 
+
+def test_clear_event():
+
+    # First day
+    one_date = datetime.datetime(2020, 3, 30)
+    events = myCalendar.get_events(one_date)
+
+    my_alarm.set_event(events[0])
+    my_alarm.active = False
+    my_alarm.ringing = True
+
+    assert my_alarm.title == '#force essai1 - 9:30'
+    assert my_alarm.is_alarm is True
+    assert my_alarm.radio == 'nrj'  # default value
+    assert my_alarm.repetition == 10  # default value
+    assert my_alarm.event == events[0]
+
+    my_alarm.clear_event()
+
+    assert my_alarm.title == ''
+    assert my_alarm.is_alarm is False
+    assert my_alarm.radio == 'nrj'  # default value
+    assert my_alarm.repetition == 10  # default value
+    assert my_alarm.alarms_repetition == []  # default value
+    assert my_alarm.event.kind == 'None'
+    assert my_alarm.active == True
+    assert my_alarm.ringing == False
+
+
+def test_set_active():
+
+    # First day
+    one_date = datetime.datetime(2020, 3, 30)
+    events = myCalendar.get_events(one_date)
+
+    my_alarm.set_event(events[0])
+    my_alarm.active = False
+    my_alarm.ringing = True
+
+    my_alarm.set_active()
+
+    assert my_alarm.active == True
+
 #################################################
 # Tests on extract_information_with_hashtag
 #################################################

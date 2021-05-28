@@ -96,6 +96,10 @@ class Alarm:
                 self.alarms_repetition.append(repet_datetime)
                 repet_datetime += timedelta(minutes=self.repetition)
 
+    def set_active(self):
+        logger.debug('Set active alarm')
+        self.active = True
+
     def clear_event(self):
         logger.debug("Clear event")
         self.event = Event([], 'no_calendar', 'no_name')
