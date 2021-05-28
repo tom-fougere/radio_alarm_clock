@@ -6,6 +6,7 @@ MARGIN_X = 5
 MARGIN_BETWEEN_CHAR = 5
 TIME_Y = -10
 DAY_Y = 65 + TIME_Y
+MAX_X_MINUTES = 64
 
 MAX_X = 250
 MAX_Y = 122
@@ -79,7 +80,7 @@ class Screen2in13:
 
         # Hours
         x_position = MAX_X - get_font_size(self.screen, self.hour, hour_font)[0] - MARGIN_BETWEEN_CHAR\
-                           - get_font_size(self.screen, self.minute, minute_font)[0] - 3
+                     - MAX_X_MINUTES - 3
         self.screen.text((x_position, TIME_Y), self.hour, font=hour_font, fill = 0)
 
         # Minutes
