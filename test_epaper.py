@@ -41,9 +41,11 @@ def test_update():
     display_test.hour = 20
     display_test.minute = 0
 
+    notifications = {'wifi': True, 'alarm': True, 'calendar_intervention': True}
+
     # Few seconds later
     one_datetime = now + timedelta(seconds=5)
-    display_test.update(one_datetime, event_today, event_tomorrow, is_wifi_on=True, is_alarm_on=False)
+    display_test.update(one_datetime, event_today, event_tomorrow, notifications)
 
     assert display_test.is_full_updated is False
     assert display_test.hour == 20
@@ -51,7 +53,7 @@ def test_update():
 
     # One minute later
     one_datetime = now + timedelta(seconds=65)
-    display_test.update(one_datetime, event_today, event_tomorrow, is_wifi_on=True, is_alarm_on=False)
+    display_test.update(one_datetime, event_today, event_tomorrow, notifications)
 
     assert display_test.is_full_updated is False
     assert display_test.hour == 20
@@ -59,7 +61,7 @@ def test_update():
 
     # One hour later
     one_datetime = now + timedelta(minutes=65)
-    display_test.update(one_datetime, event_today, event_tomorrow, is_wifi_on=True, is_alarm_on=False)
+    display_test.update(one_datetime, event_today, event_tomorrow, notifications)
 
     assert display_test.is_full_updated is True
     assert display_test.hour == 21
@@ -67,7 +69,7 @@ def test_update():
 
     # One hour and one minute later
     one_datetime = now + timedelta(minutes=66)
-    display_test.update(one_datetime, event_today, event_tomorrow, is_wifi_on=True, is_alarm_on=False)
+    display_test.update(one_datetime, event_today, event_tomorrow, notifications)
 
     assert display_test.is_full_updated is False
     assert display_test.hour == 21
@@ -77,7 +79,7 @@ def test_update():
     one_datetime = now + timedelta(minutes=67)
 
     event_today.set_params({'start':datetime(2021, 4, 19, 23, 00, 00), 'end':datetime(2021, 4, 19, 23, 30, 00)})
-    display_test.update(one_datetime, event_today, event_tomorrow, force_update=True, is_alarm_on=True)
+    display_test.update(one_datetime, event_today, event_tomorrow, notifications, force_update=True)
 
     assert display_test.is_full_updated is True
     assert display_test.hour == 21
