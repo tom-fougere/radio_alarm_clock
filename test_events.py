@@ -25,6 +25,7 @@ def test_no_event():
     assert calendar_event.description == ''
     assert calendar_event.start == datetime.datetime.min
     assert calendar_event.end == datetime.datetime.min
+    assert calendar_event.id == ''
 
 def test_event_hour():
 

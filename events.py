@@ -21,6 +21,7 @@ class Event:
         self.description = ''
         self.start = datetime.min
         self.end = datetime.min
+        self.id = ''
 
         if len(calendar_item) > 0:
             self.id = get_value_from_dict(calendar_item, 'id')
