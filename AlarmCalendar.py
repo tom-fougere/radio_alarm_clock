@@ -67,8 +67,13 @@ class OnlineCalendar:
 
         if len(events['items'][0]) > 0:
             for i_event in events['items']:
+
+                # Add hashtag to the summary
                 i_event['summary'] = ' '.join([FORCE_STRING, i_event['summary']])
+
+                # Update event
                 self.google_service.update_event(i_event, calendar_id=self.alarm_calendar)
+
                 logger.info('Add "%s" to all alarms')
         else:
             logger.warning('No possibility to force the alarm because there is none !')

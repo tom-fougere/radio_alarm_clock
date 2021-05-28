@@ -142,7 +142,8 @@ class GoogleCalendarAPI:
         events = self.google_service.events().list(calendarId=calendar_id,
                                                    timeMin=time_min,
                                                    timeMax=time_max,
-                                                   timeZone=x).execute()
+                                                   timeZone=x,
+                                                   singleEvents=True).execute()
         return events
 
     def get_event(self, calendar_id, event_id):
@@ -202,7 +203,7 @@ class GoogleCalendarAPI:
 
     def update_event(self, google_event, calendar_id):
         """
-        Update event in specified calendar
+        Update an event in specified calendar
         :param google_event: Event to update to the calendar, google event
         :param calendar_id: ID of the calendar
         """

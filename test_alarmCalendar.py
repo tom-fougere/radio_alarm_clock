@@ -73,3 +73,25 @@ def test_force_alarm():
     # Remove the added text
     myCalendar.google_service.update_event(events_before['items'][0], my_calendars['Reveil'])
 
+def test_force_alarm_recurring_event():
+    date1 = datetime.datetime(2020, 3, 17)
+
+    events1_before = myCalendar.google_service.get_events_from_day(my_calendars['Reveil'], date1, reset_hour=True)
+    text1_before = events1_before['items'][0]['summary']
+
+    myCalendar.force_alarm(date1)
+
+    events1_after = myCalendar.google_service.get_events_from_day(my_calendars['Reveil'], date1, reset_hour=True)
+    text1_after = events1_after['items'][0]['summary']
+
+    assert ' '.join(['#force', text1_before]) == text1_after
+
+    date1 = datetime.datetime(2020, 3, 18)
+    events2_before = myCalendar.google_service.get_events_from_day(my_calendars['Reveil'], date1, reset_hour=True)
+    text2_before = events2_before['items'][0]['summary']
+
+    assert text1_before == text2_before
+
+    # Remove the added text
+    myCalendar.google_service.update_event(events1_before['items'][0], my_calendars['Reveil'])
+
