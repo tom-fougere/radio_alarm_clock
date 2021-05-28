@@ -27,12 +27,13 @@ myAlarm = Alarm()
 myRadio = Radio()
 myNotifications = Notifications()
 
-alarmButtonStop = Button(5)
-alarmButtonSnooze = Button(6)
-lightButtonIntensity = Button(23)
+alarmButtonStop = Button(5, hold_time=2)
+alarmButtonSnooze = Button(6, hold_time=2)
+lightButtonIntensity = Button(23, hold_time=2)
 
+force_displaying = False
 light_intensity = 0
-offset_datetime_debug = timedelta(days=3)
+offset_datetime_debug = -timedelta(days=0)
 
 def stop_alarm_button():
     logger.info('Button - Stop alarm !')
@@ -57,9 +58,16 @@ def snooze_alarm_button():
 
 
 def force_alarm():
-    logger.info('Button - Force alarm !')
-    dt = myDatetime.get_datetime()
-    myCalendar.force_alarm(dt)
+    if myNotifications.calendar_intervention is True:
+        logger.info('Button - Force alarm !')
+        dt = myDatetime.get_datetime() - offset_datetime_debug
+        myCalendar.force_alarm(dt)
+
+        global force_displaying
+        force_displaying = True
+    else:
+        logger.info('Button - Intervention not possible !')
+
 
 
 def change_light_intensity():
@@ -91,7 +99,7 @@ if __name__ == '__main__':
     previous_datetime = myDatetime.get_datetime() - timedelta(hours=1) - offset_datetime_debug
 
     while True:
-        sleep(2)
+        sleep(5)
 
         # Check internet connexion
         is_internet_ok = internetChecker.check_connection_once()
@@ -101,14 +109,16 @@ if __name__ == '__main__':
         current_datetime = myDatetime.get_datetime() - offset_datetime_debug
         print(myDatetime.get_datetime_string())
 
-        # Update events and alarm every hour
-        if current_datetime >= (previous_datetime + timedelta(hours=1)):
+        # Update events and alarm every hour or when the alarm is no more active or when we force the update
+        if current_datetime >= (previous_datetime + timedelta(hours=1)) or\
+                (myAlarm.is_alarm is True and myAlarm.active is False) or\
+                        force_displaying is True:
 
             # Update previous datetime
             previous_datetime = current_datetime
 
             # Search events in calendar
-            events_today = myCalendar.get_events(current_datetime, reset_hour=True)
+            events_today = myCalendar.get_events(current_datetime, reset_hour=False)
             events_tomorrow = myCalendar.get_events(current_datetime + timedelta(days=1), reset_hour=True)
 
             # Set event
@@ -124,7 +134,8 @@ if __name__ == '__main__':
         notifications = myNotifications.get_values()
 
         # Display
-        myDisplay.update(current_datetime, events_today[0], events_tomorrow[0], notifications)
+        myDisplay.update(current_datetime, events_today[0], events_tomorrow[0], notifications, force_update=force_displaying)
+        force_displaying = False
 
         # Start music in case of alarm triggered
         if myAlarm.is_ringing(current_datetime) and myRadio.on is False:
