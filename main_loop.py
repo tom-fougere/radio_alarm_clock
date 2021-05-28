@@ -5,6 +5,7 @@ from time import sleep
 
 # Personal packages
 from AlarmCalendar import OnlineCalendar
+from events import Event
 from dateTime import ReliableDate
 from documents.rw_dict import *
 from alarms import Alarm
@@ -97,9 +98,10 @@ if __name__ == '__main__':
 
     myDatetime.update()
     previous_datetime = myDatetime.get_datetime() - timedelta(hours=1) - offset_datetime_debug
+    event_today_previous = Event([], 'no_calendar', is_alarm=False)
 
     while True:
-        sleep(5)
+        sleep(2)
 
         # Check internet connexion
         is_internet_ok = internetChecker.check_connection_once()
@@ -109,10 +111,9 @@ if __name__ == '__main__':
         current_datetime = myDatetime.get_datetime() - offset_datetime_debug
         print(myDatetime.get_datetime_string())
 
-        # Update events and alarm every hour or when the alarm is no more active or when we force the update
-        if current_datetime >= (previous_datetime + timedelta(hours=1)) or\
-                (myAlarm.is_alarm is True and myAlarm.active is False) or\
-                        force_displaying is True:
+        # Update events and alarm every hour or when we force the update
+        if current_datetime >= (previous_datetime + timedelta(hours=1)) or force_displaying is True:
+            logger.info('Check calendar for new events')
 
             # Update previous datetime
             previous_datetime = current_datetime
@@ -121,11 +122,22 @@ if __name__ == '__main__':
             events_today = myCalendar.get_events(current_datetime, reset_hour=False)
             events_tomorrow = myCalendar.get_events(current_datetime + timedelta(days=1), reset_hour=True)
 
-            # Set event
-            myAlarm.set_event(events_today[0])
+            if events_today[0] != event_today_previous:
+                logger.info('New today event, update alarm')
 
-            # Set radio/music
-            myRadio.set_radio_url(myAlarm.radio)
+                # Update previous event
+                event_today_previous = events_today[0]
+                # Force update of the display
+                force_displaying = True
+
+                # Set alarm active
+                myAlarm.set_active()
+
+                # Set event
+                myAlarm.set_event(events_today[0])
+
+                # Set radio/music
+                myRadio.set_radio_url(myAlarm.radio)
 
         # Define notifications (wifi icon, alarm icon, intervention icon)
         myNotifications.set_wifi(is_internet_ok)
