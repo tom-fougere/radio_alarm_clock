@@ -17,6 +17,8 @@ CREDENTIALS_FILE = 'documents/credentials.json'
 TOKEN_JSON_FILE = 'documents/token.json'
 TOKEN_EVENTS_JSON_FILE = 'documents/token_event.json'
 
+MAX_RETRIES = 10
+
 
 class GoogleCalendarAPI:
 
@@ -61,7 +63,17 @@ class GoogleCalendarAPI:
         """
         Authorizing requests to the Google Calendar API
         """
-        self.google_service = build('calendar', 'v3', credentials=self.credentials)
+
+        retries = 0
+        connection = False
+        while connection is False and retries < MAX_RETRIES:
+            try:
+                # Build access
+                self.google_service = build('calendar', 'v3', credentials=self.credentials)
+                connection = True
+            except BrokenPipeError as e:
+                retries += 1
+                logger.warning("Exception BrokenPipeError raised {}/{}!".format(retries, MAX_RETRIES))
 
     def get_list_calendars_name(self):
         """
@@ -71,7 +83,17 @@ class GoogleCalendarAPI:
             - calendars_name (string): List of calendar's name
         """
 
-        calendars_result = self.google_service.calendarList().list().execute()
+        retries = 0
+        connection = False
+        while connection is False and retries < MAX_RETRIES:
+            try:
+                # Get list of calendar name
+                calendars_result = self.google_service.calendarList().list().execute()
+                connection = True
+            except BrokenPipeError as e:
+                retries += 1
+                logger.warning("Exception BrokenPipeError raised {}/{}!".format(retries, MAX_RETRIES))
+
         calendars_list = calendars_result.get('items', [])
 
         calendars_name = []
@@ -91,9 +113,18 @@ class GoogleCalendarAPI:
             - calendars_id (string): List of calendar's id
         """
 
-        calendars_result = self.google_service.calendarList().list().execute()
-        calendars_list = calendars_result.get('items', [])
+        retries = 0
+        connection = False
+        while connection is False and retries < MAX_RETRIES:
+            try:
+                # Get list of calendar id
+                calendars_result = self.google_service.calendarList().list().execute()
+                connection = True
+            except BrokenPipeError as e:
+                retries += 1
+                logger.warning("Exception BrokenPipeError raised {}/{}!".format(retries, MAX_RETRIES))
 
+        calendars_list = calendars_result.get('items', [])
         calendars_id = [calendar['id'] for calendar in calendars_list]
 
         return calendars_id
@@ -139,11 +170,22 @@ class GoogleCalendarAPI:
         time_max = end_day + 'T' + end_hour + 'Z'
 
         x = datetime.datetime.now(datetime.timezone.utc).astimezone().tzname()
-        events = self.google_service.events().list(calendarId=calendar_id,
-                                                   timeMin=time_min,
-                                                   timeMax=time_max,
-                                                   timeZone=x,
-                                                   singleEvents=True).execute()
+
+        retries = 0
+        connection = False
+        while connection is False and retries < MAX_RETRIES:
+            try:
+                # List events
+                events = self.google_service.events().list(calendarId=calendar_id,
+                                                           timeMin=time_min,
+                                                           timeMax=time_max,
+                                                           timeZone=x,
+                                                           singleEvents=True).execute()
+                connection = True
+            except BrokenPipeError as e:
+                retries += 1
+                logger.warning("Exception BrokenPipeError raised {}/{}!".format(retries, MAX_RETRIES))
+
         return events
 
     def get_event(self, calendar_id, event_id):
@@ -155,7 +197,16 @@ class GoogleCalendarAPI:
             - event: google calendar event
         """
 
-        event = self.google_service.events().get(calendarId=calendar_id, eventId=event_id).execute()
+        retries = 0
+        connection = False
+        while connection is False and retries < MAX_RETRIES:
+            try:
+                # Get events
+                event = self.google_service.events().get(calendarId=calendar_id, eventId=event_id).execute()
+                connection = True
+            except BrokenPipeError as e:
+                retries += 1
+                logger.warning("Exception BrokenPipeError raised {}/{}!".format(retries, MAX_RETRIES))
 
         return event
 
@@ -172,8 +223,16 @@ class GoogleCalendarAPI:
         self.set_credentials(token_file=TOKEN_EVENTS_JSON_FILE, scopes=SCOPES_EVENTS)
         self.build_google_service_access()
 
-        # Write event
-        inserted_event = self.google_service.events().insert(calendarId=calendar_id, body=event).execute()
+        retries = 0
+        connection = False
+        while connection is False and retries < MAX_RETRIES:
+            try:
+                # Write event
+                inserted_event = self.google_service.events().insert(calendarId=calendar_id, body=event).execute()
+                connection = True
+            except BrokenPipeError as e:
+                retries += 1
+                logger.warning("Exception BrokenPipeError raised {}/{}!".format(retries, MAX_RETRIES))
 
         # Put back the default access to Google Calendar API
         self.init_calendar_service()
@@ -193,8 +252,16 @@ class GoogleCalendarAPI:
         self.set_credentials(token_file=TOKEN_EVENTS_JSON_FILE, scopes=SCOPES_EVENTS)
         self.build_google_service_access()
 
-        # Delete event
-        self.google_service.events().delete(calendarId=calendar_id, eventId=google_event['id']).execute()
+        retries = 0
+        connection = False
+        while connection is False and retries < MAX_RETRIES:
+            try:
+                # Delete event
+                self.google_service.events().delete(calendarId=calendar_id, eventId=google_event['id']).execute()
+                connection = True
+            except BrokenPipeError as e:
+                retries += 1
+                logger.warning("Exception BrokenPipeError raised {}/{}!".format(retries, MAX_RETRIES))
 
         # Put back the default access to Google Calendar API
         self.init_calendar_service()
@@ -211,11 +278,18 @@ class GoogleCalendarAPI:
         # Change accesses to Google Calendar API in order to write events
         self.set_credentials(token_file=TOKEN_EVENTS_JSON_FILE, scopes=SCOPES_EVENTS)
         self.build_google_service_access()
-
-        # Update event
-        self.google_service.events().update(calendarId=calendar_id,
-                                            eventId=google_event['id'],
-                                            body=google_event).execute()
+        retries = 0
+        connection = False
+        while connection is False and retries < MAX_RETRIES:
+            try:
+                # Update event
+                self.google_service.events().update(calendarId=calendar_id,
+                                                    eventId=google_event['id'],
+                                                    body=google_event).execute()
+                connection = True
+            except BrokenPipeError as e:
+                retries += 1
+                logger.warning("Exception BrokenPipeError raised {}/{}!".format(retries, MAX_RETRIES))
 
         # Put back the default access to Google Calendar API
         self.init_calendar_service()
