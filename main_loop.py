@@ -14,6 +14,7 @@ from gpio_button import Button
 from InternetCheck import InternetChecker
 from music_handle import Radio
 from notifications import Notifications
+from logging_files import LoggingFileHandler
 
 logging.config.fileConfig(fname='logging.conf', disable_existing_loggers=False)
 
@@ -27,6 +28,7 @@ myDisplay = EPaper()
 myAlarm = Alarm()
 myRadio = Radio()
 myNotifications = Notifications()
+myLoggingFileHandler = LoggingFileHandler()
 
 alarmButtonStop = Button(5, hold_time=2)
 alarmButtonSnooze = Button(6, hold_time=2)
@@ -153,5 +155,8 @@ if __name__ == '__main__':
         if myAlarm.is_ringing(current_datetime) and myRadio.on is False:
             logger.info('Start radio / music !')
             myRadio.turn_on()
+
+        # Archive logging file
+        myLoggingFileHandler.archive(current_datetime, clear_content=True)
 
 
